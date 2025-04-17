@@ -1,0 +1,37 @@
+main: p1xel.minecraft.bukkit.MyVillager
+name: MyVillager
+version: 1.0
+api-version: 1.13
+commands:
+  myvillager:
+    aliases: [mv]
+
+permissions:
+  myvillager.help:
+    default: true
+  myvillager.claim:
+    default: true
+  myvillager.lock:
+    default: true
+  myvillager.info:
+    default: true
+  myvillager.info.other:
+    default: true
+  myvillager.list:
+    default: true
+  myvillager.group.create:
+    default: true
+  myvillager.group.delete:
+    default: true
+  myvillager.group.list:
+    default: true
+  myvillager.player.set:
+    default: true
+  myvillager.player.unset:
+    default: true
+  myvillager.villager.set:
+    default: true
+  myvillager.villager.unset:
+    default: true
+  myvillager.reload:
+    default: op

@@ -1,0 +1,57 @@
+language: en
+plugin-name: MyVillager
+commands-plugin-name: myvillager
+commands:
+  top: '&8&m                                                   '
+  plugin: '                &b&lMyVillager %version%'
+  space-1: '&f'
+  help: '&7/%prefix% help &aView help.'
+  claim: '&7/%prefix% claim <single/multiple> &aClaim villager.'
+  lock: '&7/%prefix% lock <single/multiple> &aToggle the villager access permission.'
+  info: '&7/%prefix% info [UniqueId] &aCheck the villager information.'
+  list: '&7/%prefix% list &aView claimed villagers list.'
+  group-create: '&7/%prefix% group create <group> &aCreate permission group.'
+  group-delete: '&7/%prefix% group delete <group> &aDelete permission group.'
+  group-list: '&7/%prefix% group list &aView groups list.'
+  player-set: '&7/%prefix% player <player> set <group> &aAdd player into the group.'
+  player-unset: '&7/%prefix% player <player> unset <group> &aAdd player into the group.'
+  villager-set: '&7/%prefix% villager <single/multiple> unset <group> &aAdd player into the group.'
+  villager-unset: '&7/%prefix% villager <single/multiple> unset <group> &aAdd player into the group.'
+  reload: '&7/%prefix% reload &aReload the configuration.'
+  space-8: '&f'
+  bottom: '&8&m                                                   '
+
+no-perm: '&b&l%prefix% &8&l| &cYou do not have permission to do that!'
+must-be-player: '&b&l%prefix% &8&l| &cYou must be a player to do that!'
+claim-success: '&b&l%prefix% &8&l| &aYou have successfully claimed the villager(s)!'
+lock-success: '&b&l%prefix% &8&l| &aYou have successfully toggled the villager(s)!'
+unable-access: '&cYou can''t trade with this claimed villager. '
+villager-not-found: '&b&l%prefix% &8&l| &cInvalid villager UniqueId.'
+
+view-info-text: '&e[View info]'
+view-info-hover: '&7Click to view information of the villager'
+villager-info:
+  - '&7UniqueId: &a%uuid%'
+  - '&7Owner: &e%owner%'
+  - '&7Trusted players: &e%players%'
+  - ''
+  - '%permit%'
+
+none: 'NONE'
+info-can-access: '&bYou are able to access to this villager!'
+info-no-perm: '&cYou are unable to access to this villager!'
+info-console: '&cI''m not quite sure if you can access to this villager...'
+
+selection:
+  selection-mode: '&b&l%prefix% &8&l| &aYou are in selection mode now, right click the villager or enter ok to quit.'
+  already-in-selection: '&b&l%prefix% &8&l| &cYou are still in the selection mode, right click the villager or enter ok to quit.'
+  quited: '&b&l%prefix% &8&l| &aQuited selection mode...'
+  claim:
+    already-claimed: '&b&l%prefix% &8&l| &cYou are not able to select the claimed villager!'
+    not-villager: '&b&l%prefix% &8&l| &cThis is not a villager!'
+    already-selected: '&b&l%prefix% &8&l| &cYou already selected this villager!'
+    success: '&b&l%prefix% &8&l| &aThe villager has been added into the selection! You can keep adding other villagers or execute claiming by entering ok.'
+    has-not-claimed: '&b&l%prefix% &8&l| &cThis villager has not been claimed!'
+  not-own: '&b&l%prefix% &8&l| &cThis claimed villager is not owned by yourself!'
+  lock:
+    success: '&b&l%prefix% &8&l| &aThe villager has been added into the selection! You can keep selecting other villagers or execute toggling by entering ok.'

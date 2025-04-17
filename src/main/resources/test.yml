@@ -1,0 +1,24 @@
+name: 11111aaaa
+groups:
+  group1:
+    list:
+      - 'uuid1'
+      - 'uuid2'
+    villagers:
+      - 'uniqueID'
+  group2:
+    list:
+      - 'uuid3'
+      - 'uuid4'
+    villagers:
+      - 'uniqueID2'
+  group3:
+    list:
+      - 'uuid2'
+      - 'uuid3'
+    villagers:
+      - 'uniqueID3'
+villagers:
+  uniqueID:
+    lock: true
+

@@ -1,0 +1,35 @@
+language: en
+plugin-name: MyVillager
+commands-plugin-name: myvillager
+commands:
+  top: '&8&m                                                   '
+  plugin: '                &b&lMyVillager %version%'
+  space-1: '&f'
+  help: '&7/%prefix% help &aView help.'
+  claim: '&7/%prefix% claim <single/multiple> &aClaim villager.'
+  lock: '&7/%prefix% lock <single/multiple> &aToggle the villager access permission.'
+  list: '&7/%prefix% list &aView claimed villagers list.'
+  group-create: '&7/%prefix% group create <group> &aCreate permission group.'
+  group-delete: '&7/%prefix% group delete <group> &aDelete permission group.'
+  group-list: '&7/%prefix% group list &aView groups list.'
+  player-set: '&7/%prefix% player <player> set <group> &aAdd player into the group.'
+  player-unset: '&7/%prefix% player <player> unset <group> &aAdd player into the group.'
+  villager-set: '&7/%prefix% villager <single/multiple> unset <group> &aAdd player into the group.'
+  villager-unset: '&7/%prefix% villager <single/multiple> unset <group> &aAdd player into the group.'
+  reload: '&7/%prefix% reload &aReload the configuration.'
+  space-8: '&f'
+  bottom: '&8&m                                                   '
+
+no-perm: '&b&l%prefix% &8&l| &cYou do not have permission to do that!'
+must-be-player: '&b&l%prefix% &8&l| &cYou must be a player to do that!'
+claim-success: '&b&l%prefix% &8&l| &aYou have successfully claimed the villager(s)!'
+
+selection:
+  selection-mode: '&b&l%prefix% &8&l| &aYou are in selection mode now, enter ok to quit.'
+  already-in-selection: '&b&l%prefix% &8&l| &cYou are still in the selection mode, enter ok to quit.'
+  quited: '&b&l%prefix% &8&l| &aQuited selection mode...'
+  claim:
+    already-claimed: '&b&l%%prefix% &8&l| &cYou are not able to select the claimed villager!'
+    not-villager: '&b&l%%prefix% &8&l| &cThis is not a villager!'
+    already-selected: '&b&l%%prefix% &8&l| &cYou already selected this villager!'
+    success: '&b&l%prefix% &8&l| &aVillager(s) have claimed successfully! Other players not in the group are unable to access to your claimed villagers.'
