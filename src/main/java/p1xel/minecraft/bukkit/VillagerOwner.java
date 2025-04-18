@@ -70,6 +70,15 @@ public class VillagerOwner {
         return list;
     }
 
+    public void createGroup(String groupName) {
+        set("groups." + groupName + ".list", Collections.emptyList());
+        set("groups." + groupName + ".villagers", Collections.emptyList());
+    }
+
+    public void removeGroup(String groupName) {
+        set("groups." + groupName, null);
+    }
+
     public List<String> getGroupPlayers(String groupName) {
         return getFile().getStringList("groups." + groupName + ".list");
     }
@@ -109,6 +118,14 @@ public class VillagerOwner {
 
     public void removeVillager(String villagerUUID) {
         set("villagers." + villagerUUID, null);
+    }
+
+    public int getVillagerAmount() {
+        try {
+            return getFile().getConfigurationSection("villagers").getKeys(false).size();
+        } catch (NullPointerException exception) {
+            return 0;
+        }
     }
 
 

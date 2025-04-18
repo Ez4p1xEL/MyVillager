@@ -5,6 +5,7 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -14,6 +15,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import p1xel.minecraft.bukkit.MyVillager;
+import p1xel.minecraft.bukkit.Utils.Config;
 import p1xel.minecraft.bukkit.Utils.Locale;
 import p1xel.minecraft.bukkit.VillagerOwner;
 
@@ -77,6 +79,7 @@ public class InteractListener implements Listener {
             button.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(Locale.getMessage("view-info-hover")).create()));
             button.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/myvillager info " + villagerUUID));
             player.spigot().sendMessage(message, button);
+            player.playSound(player.getLocation(), Sound.valueOf(Config.getString("deny-sound")), 1.5f, 1.5f);
         }
 
     }

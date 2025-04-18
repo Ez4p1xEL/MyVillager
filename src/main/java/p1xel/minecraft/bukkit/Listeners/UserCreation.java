@@ -33,9 +33,9 @@ public class UserCreation implements Listener {
         SelectionMode.putPlayerToggle(uuid, false);
         SelectionMode.putPlayerSelection(uuid, Collections.emptyList());
 
-        System.out.println(SelectionMode.getModes());
-        System.out.println(SelectionMode.getSelections());
-        System.out.println(SelectionMode.getToggle());
+        if (MyVillager.getCache().isExist(uuid)) {
+            MyVillager.getCache().remove(uuid);
+        }
     }
 
 

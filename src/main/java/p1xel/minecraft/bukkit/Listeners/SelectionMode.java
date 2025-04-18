@@ -1,9 +1,6 @@
 package p1xel.minecraft.bukkit.Listeners;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.NamespacedKey;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -78,10 +75,16 @@ public class SelectionMode implements Listener {
             String ownerUUID = container.get(key, PersistentDataType.STRING);
             VillagerOwner owner = new VillagerOwner(ownerUUID);
             String ownerName = owner.getName();
+            if (!ownerName.equalsIgnoreCase(player.getName())) {
+                if (!player.hasPermission("myvillager.info.other")) {
+                    player.sendMessage(Locale.getMessage("no-perm"));
+                    event.setCancelled(true);
+                    return;
+                }
+            }
             // Add trusted players into the list
             List<String> players = new ArrayList<>();
             List<String> groups = owner.getGroups();
-            System.out.println("groups: "+ groups);
             for (String group : groups) {
                 if (owner.getGroupVillagers(group).contains((entityUUID))) {
                     List<String> playersList = owner.getGroupPlayers(group);
@@ -101,10 +104,15 @@ public class SelectionMode implements Listener {
                 permitMessage = Locale.getMessage("info-no-perm");
             }
 
+            Location location = entity.getLocation();
             for (String message : Locale.yaml.getStringList("villager-info")) {
                 message = message.replaceAll("%uuid%", entityUUID); // The UniqueId of the villager
                 message = message.replaceAll("%owner%", ownerName); // The Owner Name
                 message = message.replaceAll("%players%", playersString); // The players who can access to the villager
+                message = message.replaceAll("%world%", location.getWorld().getName()); // The world name where the villager is in
+                message = message.replaceAll("%x%", String.valueOf(location.getX())); // The location where the villager is in (x)
+                message = message.replaceAll("%y%", String.valueOf(location.getY())); // The location where the villager is in (y)
+                message = message.replaceAll("%z%", String.valueOf(location.getZ())); // The location where the villager is in (z)
                 message = message.replaceAll("%permit%", permitMessage);
                 message = Locale.translate(message);
                 player.sendMessage(message);
@@ -158,6 +166,7 @@ public class SelectionMode implements Listener {
 
             player.sendMessage(Locale.getMessage("selection.quited"));
             event.setCancelled(true);
+            return;
         }
 
         if (getPlayerMode(uuid).equalsIgnoreCase("lock")) {
@@ -221,6 +230,270 @@ public class SelectionMode implements Listener {
             event.setCancelled(true);
         }
 
+        if (getPlayerMode(uuid).equalsIgnoreCase("villager-set")) {
+
+            PersistentDataContainer container = entity.getPersistentDataContainer();
+            NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
+            if (!container.has(key, PersistentDataType.STRING)) {
+                player.sendMessage(Locale.getMessage("selection.claim.has-not-claimed"));
+                event.setCancelled(true);
+                return;
+            }
+
+            String ownerUUID = container.get(key, PersistentDataType.STRING);
+            if (!ownerUUID.equalsIgnoreCase(uuid)) {
+                player.sendMessage(Locale.getMessage("selection.not-own"));
+                event.setCancelled(true);
+                return;
+            }
+
+            VillagerOwner owner = new VillagerOwner(ownerUUID);
+            String group = MyVillager.getCache().getValue(uuid);
+            if (owner.getGroupVillagers(group).contains(entityUUID)) {
+                player.sendMessage(Locale.getMessage("villager-already-set").replaceAll("%group%", group));
+                return;
+            }
+
+            //String ownerUUID = container.get(key, PersistentDataType.STRING);
+            List<String> list = new ArrayList<>(getPlayerSelection(uuid));
+
+            if (list.contains(entityUUID)) {
+                player.sendMessage(Locale.getMessage("selection.claim.already-selected"));
+                event.setCancelled(true);
+                return;
+            }
+
+            list.add(entityUUID);
+            replacePlayerSelection(uuid, list);
+            player.sendMessage(Locale.getMessage("selection.villager-set.success"));
+            event.setCancelled(true);
+            return;
+        }
+
+        if (getPlayerMode(uuid).equalsIgnoreCase("villager-set-single")) {
+            PersistentDataContainer container = entity.getPersistentDataContainer();
+            NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
+            if (!container.has(key, PersistentDataType.STRING)) {
+                player.sendMessage(Locale.getMessage("selection.claim.has-not-claimed"));
+                event.setCancelled(true);
+                return;
+            }
+
+            String ownerUUID = container.get(key, PersistentDataType.STRING);
+            if (!ownerUUID.equalsIgnoreCase(uuid)) {
+                player.sendMessage(Locale.getMessage("selection.not-own"));
+                event.setCancelled(true);
+                return;
+            }
+
+            VillagerOwner owner = new VillagerOwner(uuid);
+            String group = MyVillager.getCache().getValue(uuid);
+
+            if (owner.getGroupVillagers(group).contains(entityUUID)) {
+                player.sendMessage(Locale.getMessage("villager-already-set").replaceAll("%group%", group));
+                return;
+            }
+
+            owner.addVillagerToGroup(group, entityUUID);
+            MyVillager.getCache().remove(uuid);
+            player.sendMessage(Locale.getMessage("villager-set-success").replaceAll("%group%", group));
+
+            SelectionMode.replacePlayerToggle(uuid, false);
+            SelectionMode.replacePlayerMode(uuid, "none");
+            player.sendMessage(Locale.getMessage("selection.quited"));
+            event.setCancelled(true);
+            return;
+        }
+
+        if (getPlayerMode(uuid).equalsIgnoreCase("villager-unset")) {
+
+            PersistentDataContainer container = entity.getPersistentDataContainer();
+            NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
+            if (!container.has(key, PersistentDataType.STRING)) {
+                player.sendMessage(Locale.getMessage("selection.claim.has-not-claimed"));
+                event.setCancelled(true);
+                return;
+            }
+
+            String ownerUUID = container.get(key, PersistentDataType.STRING);
+            if (!ownerUUID.equalsIgnoreCase(uuid)) {
+                player.sendMessage(Locale.getMessage("selection.not-own"));
+                event.setCancelled(true);
+                return;
+            }
+
+            VillagerOwner owner = new VillagerOwner(ownerUUID);
+            String group = MyVillager.getCache().getValue(uuid);
+            if (!owner.getGroupVillagers(group).contains(entityUUID)) {
+                player.sendMessage(Locale.getMessage("villager-not-set").replaceAll("%group%", group));
+                return;
+            }
+
+            //String ownerUUID = container.get(key, PersistentDataType.STRING);
+            List<String> list = new ArrayList<>(getPlayerSelection(uuid));
+
+            if (list.contains(entityUUID)) {
+                player.sendMessage(Locale.getMessage("selection.claim.already-selected"));
+                event.setCancelled(true);
+                return;
+            }
+
+            list.add(entityUUID);
+            replacePlayerSelection(uuid, list);
+            player.sendMessage(Locale.getMessage("selection.villager-set.success"));
+            event.setCancelled(true);
+            return;
+        }
+
+        if (getPlayerMode(uuid).equalsIgnoreCase("villager-unset-single")) {
+            PersistentDataContainer container = entity.getPersistentDataContainer();
+            NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
+            if (!container.has(key, PersistentDataType.STRING)) {
+                player.sendMessage(Locale.getMessage("selection.claim.has-not-claimed"));
+                event.setCancelled(true);
+                return;
+            }
+
+            String ownerUUID = container.get(key, PersistentDataType.STRING);
+            if (!ownerUUID.equalsIgnoreCase(uuid)) {
+                player.sendMessage(Locale.getMessage("selection.not-own"));
+                event.setCancelled(true);
+                return;
+            }
+
+            VillagerOwner owner = new VillagerOwner(uuid);
+            String group = MyVillager.getCache().getValue(uuid);
+            if (owner.getGroupVillagers(group).contains(entityUUID)) {
+                player.sendMessage(Locale.getMessage("villager-not-set").replaceAll("%group%", group));
+                return;
+            }
+            owner.removeVillagerFromGroup(group, entityUUID);
+            MyVillager.getCache().remove(uuid);
+            player.sendMessage(Locale.getMessage("villager-unset-success").replaceAll("%group%", group));
+
+            SelectionMode.replacePlayerToggle(uuid, false);
+            SelectionMode.replacePlayerMode(uuid, "none");
+            player.sendMessage(Locale.getMessage("selection.quited"));
+            event.setCancelled(true);
+            return;
+        }
+
+        // admin lock
+
+        if (getPlayerMode(uuid).equalsIgnoreCase("admin-lock")) {
+
+            PersistentDataContainer container = entity.getPersistentDataContainer();
+            NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
+            if (!container.has(key, PersistentDataType.STRING)) {
+                player.sendMessage(Locale.getMessage("selection.claim.has-not-claimed"));
+                event.setCancelled(true);
+                return;
+            }
+
+            //String ownerUUID = container.get(key, PersistentDataType.STRING);
+            List<String> list = new ArrayList<>(getPlayerSelection(uuid));
+
+            if (list.contains(entityUUID)) {
+                player.sendMessage(Locale.getMessage("selection.claim.already-selected"));
+                event.setCancelled(true);
+                return;
+            }
+
+            list.add(entityUUID);
+            replacePlayerSelection(uuid, list);
+            player.sendMessage(Locale.getMessage("selection.lock.success"));
+            event.setCancelled(true);
+            return;
+        }
+
+        if (getPlayerMode(uuid).equalsIgnoreCase("admin-lock-single")) {
+
+            PersistentDataContainer container = entity.getPersistentDataContainer();
+            NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
+            if (!container.has(key, PersistentDataType.STRING)) {
+                player.sendMessage(Locale.getMessage("selection.claim.has-not-claimed"));
+                event.setCancelled(true);
+                return;
+            }
+
+            String ownerUUID = container.get(key, PersistentDataType.STRING);
+            VillagerOwner owner = new VillagerOwner(ownerUUID);
+
+            boolean newResult = !owner.isLock(entityUUID);
+            owner.setLock(entityUUID, newResult);
+            player.sendMessage(Locale.getMessage("lock-success"));
+
+            SelectionMode.replacePlayerToggle(uuid, false);
+            SelectionMode.replacePlayerMode(uuid, "none");
+
+            player.sendMessage(Locale.getMessage("selection.quited"));
+            event.setCancelled(true);
+            return;
+        }
+
+        // admin remove
+
+        if (getPlayerMode(uuid).equalsIgnoreCase("admin-remove")) {
+
+            PersistentDataContainer container = entity.getPersistentDataContainer();
+            NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
+            if (!container.has(key, PersistentDataType.STRING)) {
+                player.sendMessage(Locale.getMessage("selection.claim.has-not-claimed"));
+                event.setCancelled(true);
+                return;
+            }
+
+            //String ownerUUID = container.get(key, PersistentDataType.STRING);
+            List<String> list = new ArrayList<>(getPlayerSelection(uuid));
+
+            if (list.contains(entityUUID)) {
+                player.sendMessage(Locale.getMessage("selection.claim.already-selected"));
+                event.setCancelled(true);
+                return;
+            }
+
+            list.add(entityUUID);
+            replacePlayerSelection(uuid, list);
+            player.sendMessage(Locale.getMessage("selection.remove.success"));
+            event.setCancelled(true);
+            return;
+        }
+
+        if (getPlayerMode(uuid).equalsIgnoreCase("admin-remove-single")) {
+
+            PersistentDataContainer container = entity.getPersistentDataContainer();
+            NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
+            if (!container.has(key, PersistentDataType.STRING)) {
+                player.sendMessage(Locale.getMessage("selection.claim.has-not-claimed"));
+                event.setCancelled(true);
+                return;
+            }
+
+            String ownerUUID = container.get(key, PersistentDataType.STRING);
+            VillagerOwner owner = new VillagerOwner(ownerUUID);
+
+            entity.getPersistentDataContainer().remove(key);
+            owner.removeVillager(entityUUID);
+
+            for (String group : owner.getGroups()) {
+
+                if (owner.getGroupVillagers(group).contains(entityUUID)) {
+                    owner.removeVillagerFromGroup(group, entityUUID);
+                    break;
+                }
+
+            }
+
+            player.sendMessage(Locale.getMessage("remove-success"));
+
+            SelectionMode.replacePlayerToggle(uuid, false);
+            SelectionMode.replacePlayerMode(uuid, "none");
+
+            player.sendMessage(Locale.getMessage("selection.quited"));
+            event.setCancelled(true);
+            return;
+        }
+
     }
 
     @EventHandler
@@ -242,43 +515,103 @@ public class SelectionMode implements Listener {
             public void run() {
                 String mode = SelectionMode.getPlayerMode(uuid);
                 List<String> entities = SelectionMode.getPlayerSelection(uuid);
+                VillagerOwner owner = new VillagerOwner(uuid);
 
                 switch (mode) {
                     case "claim":
+
+                        String group;
 
                         for (String villagerUUID : entities) {
 
                             Entity villager = Bukkit.getEntity(UUID.fromString(villagerUUID));
                             NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
-                            villager.getPersistentDataContainer().set(key, PersistentDataType.STRING, p.getUniqueId().toString());
-                            VillagerOwner owner = new VillagerOwner(uuid);
+                            villager.getPersistentDataContainer().set(key, PersistentDataType.STRING, uuid);
                             owner.addVillager(villagerUUID);
-
 
                         }
 
                         p.sendMessage(Locale.getMessage("claim-success"));
+                        break;
+
                     case "lock":
                         for (String villagerUUID : entities) {
-                            VillagerOwner owner = new VillagerOwner(uuid);
                             boolean newResult = !owner.isLock(villagerUUID);
                             owner.setLock(villagerUUID, newResult);
 
                         }
 
                         p.sendMessage(Locale.getMessage("lock-success"));
+                        break;
+
+                    case "villager-set":
+                        group = MyVillager.getCache().getValue(uuid);
+                        for (String villagerUUID : entities) {
+                            owner.addVillagerToGroup(group, villagerUUID);
+                        }
+
+                        p.sendMessage(Locale.getMessage("villager-set-success").replaceAll("%group%", group));
+                        break;
+
+                    case "villager-unset":
+                        group = MyVillager.getCache().getValue(uuid);
+                        for (String villagerUUID : entities) {
+                            owner.removeVillagerFromGroup(group, villagerUUID);
+                        }
+
+                        p.sendMessage(Locale.getMessage("villager-unset-success").replaceAll("%group%", group));
+                        break;
+
+                    case "admin-lock":
+                        for (String villagerUUID : entities) {
+                            Entity entity = Bukkit.getEntity(UUID.fromString(villagerUUID));
+                            NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
+                            String ownerUUID = entity.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+                            owner = new VillagerOwner(ownerUUID);
+
+                            boolean newResult = !owner.isLock(villagerUUID);
+                            owner.setLock(villagerUUID, newResult);
+
+                        }
+
+                        p.sendMessage(Locale.getMessage("lock-success"));
+                        break;
+
+                    case "admin-remove":
+                        for (String villagerUUID : entities) {
+                            Entity entity = Bukkit.getEntity(UUID.fromString(villagerUUID));
+                            NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
+                            String ownerUUID = entity.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+                            owner = new VillagerOwner(ownerUUID);
+                            owner.removeVillager(villagerUUID);
+                            for (String g : owner.getGroups()) {
+
+                                if (owner.getGroupVillagers(g).contains(villagerUUID)) {
+                                    owner.removeVillagerFromGroup(g, villagerUUID);
+                                    break;
+                                }
+
+                            }
+
+                            entity.getPersistentDataContainer().remove(key);
+
+                        }
+
+                        p.sendMessage(Locale.getMessage("remove-success"));
+                        break;
                 }
 
                 SelectionMode.replacePlayerToggle(uuid, false);
                 SelectionMode.replacePlayerSelection(uuid, Collections.emptyList());
                 SelectionMode.replacePlayerMode(uuid, "none");
+                MyVillager.getCache().remove(uuid);
 
                 p.sendMessage(Locale.getMessage("selection.quited"));
-                event.setCancelled(true);
 
             }
         }.runTask(MyVillager.getInstance());
 
+        event.setCancelled(true);
 
     }
 

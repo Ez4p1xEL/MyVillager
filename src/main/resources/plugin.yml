@@ -23,7 +23,7 @@ permissions:
     default: true
   myvillager.group.delete:
     default: true
-  myvillager.group.list:
+  myvillager.group.info:
     default: true
   myvillager.player.set:
     default: true
@@ -33,5 +33,11 @@ permissions:
     default: true
   myvillager.villager.unset:
     default: true
+  myvillager.admin.lock:
+    default: op
+  myvillager.admin.remove:
+    default: op
+  myvillager.bypass:
+    default: op
   myvillager.reload:
     default: op

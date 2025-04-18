@@ -1,2 +1,4 @@
 configuration: 1
 language: en
+
+deny-sound: ENTITY_VILLAGER_NO
