@@ -37,7 +37,5 @@ permissions:
     default: op
   myvillager.admin.remove:
     default: op
-  myvillager.bypass:
-    default: op
   myvillager.reload:
     default: op

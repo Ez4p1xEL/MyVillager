@@ -2,6 +2,7 @@ package p1xel.minecraft.bukkit;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import p1xel.minecraft.bukkit.Commands.Cmd;
+import p1xel.minecraft.bukkit.Commands.TabList;
 import p1xel.minecraft.bukkit.Listeners.InteractListener;
 import p1xel.minecraft.bukkit.Listeners.SelectionMode;
 import p1xel.minecraft.bukkit.Listeners.UserCreation;
@@ -29,6 +30,7 @@ public class MyVillager extends JavaPlugin {
         Locale.createLocaleFile();
 
         getServer().getPluginCommand("MyVillager").setExecutor(new Cmd());
+        getServer().getPluginCommand("MyVillager").setTabCompleter(new TabList());
         getServer().getPluginManager().registerEvents(new UserCreation(), this);
         getServer().getPluginManager().registerEvents(new InteractListener(), this);
         getServer().getPluginManager().registerEvents(new SelectionMode(), this);

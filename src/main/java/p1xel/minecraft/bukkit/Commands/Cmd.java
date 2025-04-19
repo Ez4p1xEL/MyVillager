@@ -216,6 +216,19 @@ public class  Cmd implements CommandExecutor {
 
         if (args.length == 1) {
 
+            if (args[0].equalsIgnoreCase("reload")) {
+                if (!sender.hasPermission("myvillager.reload")) {
+                    sender.sendMessage(Locale.getMessage("no-perm"));
+                    return true;
+                }
+
+                MyVillager.getInstance().reloadConfig();
+                Locale.createLocaleFile();
+                sender.sendMessage(Locale.getMessage("reload-success"));
+                return true;
+
+            }
+
             if (args[0].equalsIgnoreCase("help")) {
 
                 if (!sender.hasPermission("myvillager.help")) {
