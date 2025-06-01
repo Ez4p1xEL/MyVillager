@@ -11,6 +11,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -75,6 +76,55 @@ public class InteractListener implements Listener {
         if (SelectionMode.getPlayerMode(playerUUID).equalsIgnoreCase("none")) {
             e.setCancelled(true);
             TextComponent message = new TextComponent(Locale.getMessage("unable-access"));
+            TextComponent button = new TextComponent(Locale.getMessage("view-info-text"));
+            button.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(Locale.getMessage("view-info-hover")).create()));
+            button.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/myvillager info " + villagerUUID));
+            player.spigot().sendMessage(message, button);
+            player.playSound(player.getLocation(), Sound.valueOf(Config.getString("deny-sound")), 1.5f, 1.5f);
+        }
+
+    }
+
+    @EventHandler
+    public void onDamage(EntityDamageByEntityEvent e) {
+
+        Entity entity = e.getEntity();
+        if (entity.getType() != EntityType.VILLAGER) {
+            return;
+        }
+
+        Entity playerEntity = e.getDamager();
+        if (!(playerEntity instanceof Player)) {
+            return;
+        }
+
+        Player player = (Player) playerEntity;
+        // Check if anyone claimed this villager before
+        PersistentDataContainer container = entity.getPersistentDataContainer();
+        NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
+        if (!container.has(key, PersistentDataType.STRING)) {
+            return;
+        }
+
+        String ownerUUID = container.get(key, PersistentDataType.STRING);
+
+        if (ownerUUID == null) {
+            return;
+        }
+
+        String villagerUUID = entity.getUniqueId().toString();
+
+
+        // If the player is admin
+        if (player.hasPermission("myvillager.bypass")) {
+            return;
+        }
+
+        // Check if the player does not equal to the owner
+        String playerUUID = player.getUniqueId().toString();
+        if (!ownerUUID.equalsIgnoreCase(playerUUID)) {
+            e.setCancelled(true);
+            TextComponent message = new TextComponent(Locale.getMessage("cant-damage"));
             TextComponent button = new TextComponent(Locale.getMessage("view-info-text"));
             button.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(Locale.getMessage("view-info-hover")).create()));
             button.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/myvillager info " + villagerUUID));

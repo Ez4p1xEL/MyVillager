@@ -28,6 +28,7 @@ must-be-player: '&b&l%prefix% &8&l| &c你必须是名玩家!'
 claim-success: '&b&l%prefix% &8&l| &a你成功认领了村民!'
 lock-success: '&b&l%prefix% &8&l| &a你成为启用/关闭了村民的使用权限!'
 unable-access: '&c你无法与这个被认领的村民交易 '
+cant-damage: '&c你无法伤害这名被认领的村民 '
 number-invalid: '&b&l%prefix% &8&l| &c错误的值'
 invalid-page: '&b&l%prefix% &8&l| 错误的页数'
 no-record: '&b&l%prefix% &8&l| &c你没有认领村民!'
@@ -89,3 +90,7 @@ selection:
     success: '&b&l%prefix% &8&l| &a村民已被添加至选择清单中! 你可以继续选择村民或者输入ok将村民添加至组中'
   remove:
     success: '&b&l%prefix% &8&l| &a村民已被添加至选择清单中! 你可以继续选择村民或者输入ok移除村民的认领信息'
+
+vault:
+  not-enough-money: '&b&l%prefix% &8&l| &c没有足够的金钱 (仍然需要 $%remain%)'
+  purchase: '&b&l%prefix% &8&l| &a已扣款 $%cost%'

@@ -1,4 +1,11 @@
 configuration: 1
 language: en
 
+# Purchase cost
+# This function needs Vault enabled.
+claim-cost: 2000.0
+
 deny-sound: ENTITY_VILLAGER_NO
+
+hooks:
+  Vault: true

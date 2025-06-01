@@ -1,9 +1,7 @@
 package p1xel.minecraft.bukkit.Utils;
 
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Entity;
 import p1xel.minecraft.bukkit.MyVillager;
 
 import java.io.File;

@@ -12,6 +12,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import p1xel.minecraft.bukkit.MyVillager;
+import p1xel.minecraft.bukkit.Utils.Config;
 import p1xel.minecraft.bukkit.Utils.Locale;
 import p1xel.minecraft.bukkit.VillagerOwner;
 
@@ -156,10 +157,29 @@ public class SelectionMode implements Listener {
                 return;
             }
 
+            boolean isVaultEnabled = MyVillager.getInstance().isDependencyEnabled("Vault");
+            if (isVaultEnabled) {
+                double balance = MyVillager.getEconomy().getBalance(player);
+                double cost = Config.getDouble("claim-cost");
+                if (balance < cost) {
+                    player.sendMessage(Locale.getMessage("vault.not-enough-money").replaceAll("%remain%", String.valueOf(cost-balance)));
+                    SelectionMode.replacePlayerToggle(uuid, false);
+                    SelectionMode.replacePlayerMode(uuid, "none");
+                    player.sendMessage(Locale.getMessage("selection.quited"));
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+
             container.set(key, PersistentDataType.STRING, player.getUniqueId().toString());
             VillagerOwner owner = new VillagerOwner(uuid);
             owner.addVillager(entityUUID);
             player.sendMessage(Locale.getMessage("claim-success"));
+            if (isVaultEnabled) {
+                double cost = Config.getDouble("claim-cost");
+                MyVillager.getEconomy().withdrawPlayer(player, cost);
+                player.sendMessage(Locale.getMessage("vault.purchase").replaceAll("%cost%", String.valueOf(cost)));
+            }
 
             SelectionMode.replacePlayerToggle(uuid, false);
             SelectionMode.replacePlayerMode(uuid, "none");
@@ -522,6 +542,16 @@ public class SelectionMode implements Listener {
 
                         String group;
 
+                        boolean isVaultEnabled = MyVillager.getInstance().isDependencyEnabled("Vault");
+                        if (isVaultEnabled) {
+                            double balance = MyVillager.getEconomy().getBalance(p);
+                            double cost = Config.getDouble("claim-cost") * entities.size();
+                            if (balance < cost) {
+                                p.sendMessage(Locale.getMessage("vault.not-enough-money").replaceAll("%remain%", String.valueOf(cost-balance)));
+                                break;
+                            }
+                        }
+
                         for (String villagerUUID : entities) {
 
                             Entity villager = Bukkit.getEntity(UUID.fromString(villagerUUID));
@@ -532,6 +562,11 @@ public class SelectionMode implements Listener {
                         }
 
                         p.sendMessage(Locale.getMessage("claim-success"));
+                        if (isVaultEnabled) {
+                            double cost = Config.getDouble("claim-cost") * entities.size();
+                            MyVillager.getEconomy().withdrawPlayer(p, cost);
+                            p.sendMessage(Locale.getMessage("vault.purchase").replaceAll("%cost%", String.valueOf(cost)));
+                        }
                         break;
 
                     case "lock":

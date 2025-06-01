@@ -28,6 +28,7 @@ must-be-player: '&b&l%prefix% &8&l| &cYou must be a player to do that!'
 claim-success: '&b&l%prefix% &8&l| &aYou have successfully claimed the villager(s)!'
 lock-success: '&b&l%prefix% &8&l| &aYou have successfully toggled the villager(s)!'
 unable-access: '&cYou can''t trade with this claimed villager. '
+cant-damage: '&cYou can''t damage this claimed villager.   '
 number-invalid: '&b&l%prefix% &8&l| &cInvalid value.'
 invalid-page: '&b&l%prefix% &8&l| Invalid page number.'
 no-record: '&b&l%prefix% &8&l| &cYou do not have any claimed villagers!'
@@ -89,3 +90,7 @@ selection:
     success: '&b&l%prefix% &8&l| &aThe villager has been added into the selection! You can keep selecting other villagers or execute setting by entering ok.'
   remove:
     success: '&b&l%prefix% &8&l| &aThe villager has been added into the selection! You can keep selecting other villagers or execute removing by entering ok.'
+
+vault:
+  not-enough-money: '&b&l%prefix% &8&l| &cNot enough money. (Still need $%remain%.)'
+  purchase: '&b&l%prefix% &8&l| &a$%cost% has been taken for the purchase.'

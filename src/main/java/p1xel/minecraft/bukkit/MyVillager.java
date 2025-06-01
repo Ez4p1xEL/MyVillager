@@ -1,5 +1,7 @@
 package p1xel.minecraft.bukkit;
 
+import net.milkbowl.vault.economy.Economy;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import p1xel.minecraft.bukkit.Commands.Cmd;
 import p1xel.minecraft.bukkit.Commands.TabList;
@@ -22,6 +24,11 @@ public class MyVillager extends JavaPlugin {
     private static Cache cache;
     public static Cache getCache() { return cache;}
 
+    private static Economy econ = null;
+    public static Economy getEconomy() {
+        return econ;
+    }
+
     @Override
     public void onEnable() {
         instance = this;
@@ -35,6 +42,12 @@ public class MyVillager extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new InteractListener(), this);
         getServer().getPluginManager().registerEvents(new SelectionMode(), this);
 
+        if (!setupEconomy() ) {
+            getLogger().info("Economy function is not loaded due to missing dependency.");
+        } else {
+            getLogger().info("Economy function is loaded!");
+        }
+
         // Text from https://tools.miku.ac/taag/ (Font: Slant)
         getLogger().info("    __  ___     _    ___ ____          ");
         getLogger().info("   /  |/  /_  _| |  / (_) / /___ _____ ____  _____");
@@ -46,6 +59,22 @@ public class MyVillager extends JavaPlugin {
 
         int pluginId = 25531;
         new Metrics(this, pluginId);
+    }
+
+    public boolean isDependencyEnabled(String pluginName) {
+        return getServer().getPluginManager().getPlugin(pluginName) != null && getConfig().getBoolean("hooks."+pluginName);
+    }
+
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        econ = rsp.getProvider();
+        return econ != null;
     }
 
 
