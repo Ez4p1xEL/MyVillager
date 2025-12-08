@@ -1,16 +1,12 @@
 package p1xel.minecraft.bukkit;
 
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
-import p1xel.minecraft.bukkit.Utils.VillagerManager;
+import p1xel.minecraft.bukkit.utils.VillagerManager;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 public class VillagerOwner {
 

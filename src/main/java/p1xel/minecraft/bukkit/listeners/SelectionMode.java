@@ -1,4 +1,4 @@
-package p1xel.minecraft.bukkit.Listeners;
+package p1xel.minecraft.bukkit.listeners;
 
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
@@ -12,8 +12,8 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import p1xel.minecraft.bukkit.MyVillager;
-import p1xel.minecraft.bukkit.Utils.Config;
-import p1xel.minecraft.bukkit.Utils.Locale;
+import p1xel.minecraft.bukkit.utils.Config;
+import p1xel.minecraft.bukkit.utils.Locale;
 import p1xel.minecraft.bukkit.VillagerOwner;
 
 import java.util.*;
@@ -499,7 +499,6 @@ public class SelectionMode implements Listener {
 
                 if (owner.getGroupVillagers(group).contains(entityUUID)) {
                     owner.removeVillagerFromGroup(group, entityUUID);
-                    break;
                 }
 
             }
@@ -623,7 +622,6 @@ public class SelectionMode implements Listener {
 
                                 if (owner.getGroupVillagers(g).contains(villagerUUID)) {
                                     owner.removeVillagerFromGroup(g, villagerUUID);
-                                    break;
                                 }
 
                             }

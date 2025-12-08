@@ -1,4 +1,4 @@
-package p1xel.minecraft.bukkit.Commands;
+package p1xel.minecraft.bukkit.commands;
 
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -15,9 +15,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import p1xel.minecraft.bukkit.Listeners.SelectionMode;
+import p1xel.minecraft.bukkit.listeners.SelectionMode;
 import p1xel.minecraft.bukkit.MyVillager;
-import p1xel.minecraft.bukkit.Utils.Locale;
+import p1xel.minecraft.bukkit.utils.Locale;
 import p1xel.minecraft.bukkit.VillagerOwner;
 
 import javax.annotation.ParametersAreNonnullByDefault;

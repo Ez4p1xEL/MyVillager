@@ -1,4 +1,4 @@
-package p1xel.minecraft.bukkit.Utils;
+package p1xel.minecraft.bukkit.utils;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;

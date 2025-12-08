@@ -1,4 +1,4 @@
-package p1xel.minecraft.bukkit.bStats;
+package p1xel.minecraft.bukkit.tools.bstats;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;

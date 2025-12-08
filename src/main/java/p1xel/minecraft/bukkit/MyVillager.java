@@ -1,21 +1,30 @@
 package p1xel.minecraft.bukkit;
 
+import com.tcoded.folialib.FoliaLib;
 import net.milkbowl.vault.economy.Economy;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import p1xel.minecraft.bukkit.Commands.Cmd;
-import p1xel.minecraft.bukkit.Commands.TabList;
-import p1xel.minecraft.bukkit.Listeners.InteractListener;
-import p1xel.minecraft.bukkit.Listeners.SelectionMode;
-import p1xel.minecraft.bukkit.Listeners.UserCreation;
-import p1xel.minecraft.bukkit.Utils.Cache;
-import p1xel.minecraft.bukkit.Utils.Locale;
-import p1xel.minecraft.bukkit.bStats.Metrics;
+import p1xel.minecraft.bukkit.commands.Cmd;
+import p1xel.minecraft.bukkit.commands.TabList;
+import p1xel.minecraft.bukkit.listeners.InteractListener;
+import p1xel.minecraft.bukkit.listeners.SelectionMode;
+import p1xel.minecraft.bukkit.listeners.UserCreation;
+import p1xel.minecraft.bukkit.tools.spigotmc.UpdateChecker;
+import p1xel.minecraft.bukkit.utils.Cache;
+import p1xel.minecraft.bukkit.utils.Config;
+import p1xel.minecraft.bukkit.utils.Locale;
+import p1xel.minecraft.bukkit.tools.bstats.Metrics;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class MyVillager extends JavaPlugin {
 
     private static MyVillager instance;
     public static MyVillager getInstance() { return instance; }
+    private static FoliaLib foliaLib;
+    public static FoliaLib getFoliaLib() {return foliaLib;}
 
     public String getLanguage() {
         return getConfig().getString("language");
@@ -32,8 +41,10 @@ public class MyVillager extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        foliaLib = new FoliaLib(this);
         cache = new Cache();
         saveDefaultConfig();
+        updateConfig();
         Locale.createLocaleFile();
 
         getServer().getPluginCommand("MyVillager").setExecutor(new Cmd());
@@ -59,6 +70,15 @@ public class MyVillager extends JavaPlugin {
 
         int pluginId = 25531;
         new Metrics(this, pluginId);
+        if (Config.getBool("check-update")) {
+            new UpdateChecker(this, 124216).getVersion(version -> {
+                if (this.getDescription().getVersion().equals(version)) {
+                    getLogger().info(Locale.getMessage("update-check.latest"));
+                } else {
+                    getLogger().info(Locale.getMessage("update-check.outdate"));
+                }
+            });
+        }
     }
 
     public boolean isDependencyEnabled(String pluginName) {
@@ -75,6 +95,23 @@ public class MyVillager extends JavaPlugin {
         }
         econ = rsp.getProvider();
         return econ != null;
+    }
+
+    private final List<String> protections = Arrays.asList("player","zombie","pillager", "falling-block","suffocation", "fall", "fire", "explode", "poison");
+
+    private void updateConfig() {
+        FileConfiguration config = getConfig();
+        int version = config.getInt("configuration");
+
+        // 1.2.0
+        if (version < 2) {
+            config.set("configuration", 2);
+            for (String protection : protections) {
+                config.set("protection." + protection, true);
+            }
+        }
+
+        saveConfig();
     }
 
 

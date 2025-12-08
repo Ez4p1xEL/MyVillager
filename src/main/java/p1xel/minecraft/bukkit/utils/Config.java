@@ -1,6 +1,5 @@
-package p1xel.minecraft.bukkit.Utils;
+package p1xel.minecraft.bukkit.utils;
 
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import p1xel.minecraft.bukkit.MyVillager;
 

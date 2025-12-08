@@ -1,4 +1,4 @@
-package p1xel.minecraft.bukkit.Utils;
+package p1xel.minecraft.bukkit.utils;
 
 import java.util.HashMap;
 

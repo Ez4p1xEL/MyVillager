@@ -94,3 +94,8 @@ selection:
 vault:
   not-enough-money: '&b&l%prefix% &8&l| &c沒有足夠的金錢 (仍然需要 $%remain%)'
   purchase: '&b&l%prefix% &8&l| &a已扣款 $%cost%'
+
+update-check:
+  invalid: '無法檢查更新: '
+  latest: '暫時沒有任何更新 你的版本為最新版!'
+  outdate: '有版本更新 請前往MineBBS或SpigotMC下載!'

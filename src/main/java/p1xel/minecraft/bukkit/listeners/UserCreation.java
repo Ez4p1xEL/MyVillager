@@ -1,12 +1,11 @@
-package p1xel.minecraft.bukkit.Listeners;
+package p1xel.minecraft.bukkit.listeners;
 
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
 import p1xel.minecraft.bukkit.MyVillager;
-import p1xel.minecraft.bukkit.Utils.VillagerManager;
+import p1xel.minecraft.bukkit.utils.VillagerManager;
 
 import java.io.File;
 import java.util.Collections;
