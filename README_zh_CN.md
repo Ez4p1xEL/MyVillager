@@ -1,6 +1,6 @@
 # MyVillager
 [![Discord](https://img.shields.io/discord/937622491076108338?logo=Discord&label=discord)](https://discord.gg/UJNAGjuyhS)
-[![SourceCode](https://img.shields.io/badge/github-sourceCode-brightgreen?logo=GitHub)](https://github.com/Ez4p1xEL/MyVillager)
+[![SourceCode](https://img.shields.io/badge/github-sourceCode-orange?logo=GitHub)](https://github.com/Ez4p1xEL/MyVillager)
 [![Wiki](https://img.shields.io/badge/wiki-available-brightgreen?logo=readthedocs)](https://docs.p1mc.top/zh/)
 [![bStats](https://img.shields.io/badge/bstats-spawnplus-blue?logo=google-analytics)](https://bstats.org/plugin/bukkit/MyVillager/25531)  
 [![SpigotMC](https://img.shields.io/badge/To-SpigotMC-yellow)](https://www.spigotmc.org/resources/myvillager.124216/)
