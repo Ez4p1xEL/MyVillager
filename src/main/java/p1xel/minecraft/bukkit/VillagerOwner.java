@@ -1,6 +1,9 @@
 package p1xel.minecraft.bukkit;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Entity;
 import p1xel.minecraft.bukkit.utils.VillagerManager;
 
 import java.io.File;
@@ -12,7 +15,6 @@ public class VillagerOwner {
 
     private FileConfiguration yaml;
     private String uuid;
-
 
     public VillagerOwner(String playerUUID) {
         if (!VillagerManager.isCacheExist(playerUUID)) {
@@ -108,8 +110,16 @@ public class VillagerOwner {
     }
 
 
-    public void addVillager(String villagerUUID) {
+    public void addVillager(String villagerUUID, Location location) {
         set("villagers." + villagerUUID + ".lock", true);
+        set("villagers." + villagerUUID + ".location.world", location.getWorld().getName());
+        set("villagers." + villagerUUID + ".location.x", location.getX());
+        set("villagers." + villagerUUID + ".location.y", location.getY());
+        set("villagers." + villagerUUID + ".location.z", location.getZ());
+    }
+
+    public void addVillager(Entity entity) {
+        addVillager(entity.getUniqueId().toString(), entity.getLocation());
     }
 
     public void removeVillager(String villagerUUID) {
@@ -122,6 +132,15 @@ public class VillagerOwner {
         } catch (NullPointerException exception) {
             return 0;
         }
+    }
+
+    // get claimed location
+    public Location getVillagerLocation(String villagerUUID) {
+        String world = yaml.getString("villagers." + villagerUUID + ".location.world", Bukkit.getWorlds().get(0).getName());
+        double x = yaml.getDouble("villagers." + villagerUUID + ".location.x", 0);
+        double y = yaml.getDouble("villagers." + villagerUUID + ".location.y", 0);
+        double z = yaml.getDouble("villagers." + villagerUUID + ".location.z", 0);
+        return new Location(Bukkit.getWorld(world), x, y, z);
     }
 
 

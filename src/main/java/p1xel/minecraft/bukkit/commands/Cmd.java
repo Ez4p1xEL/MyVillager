@@ -74,26 +74,50 @@ public class  Cmd implements CommandExecutor {
                     }
 
                     String entityUUID = args[1];
-                    Entity entity = Bukkit.getEntity(UUID.fromString(entityUUID));
-                    if (entity == null) {
-                        sender.sendMessage(Locale.getMessage("villager-not-found"));
-                        return true;
-                    }
 
-                    PersistentDataContainer container = entity.getPersistentDataContainer();
-                    NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
-                    if (!container.has(key, PersistentDataType.STRING)) {
-                        sender.sendMessage(Locale.getMessage("selection.claim.has-not-claimed"));
-                    }
-                    String ownerUUID = container.get(key, PersistentDataType.STRING);
-                    VillagerOwner owner = new VillagerOwner(ownerUUID);
-                    String ownerName = owner.getName();
-                    if (!ownerName.equalsIgnoreCase(sender.getName())) {
-                        if (!sender.hasPermission("myvillager.info.other")) {
-                            sender.sendMessage(Locale.getMessage("no-perm"));
-                            return true;
+                    boolean isPlayer = false;
+                    boolean containVillager = false;
+                    VillagerOwner owner = null;
+                    String playerUUID = null;
+                    String ownerUUID = null;
+                    String ownerName = null;
+                    Entity entity = Bukkit.getEntity(UUID.fromString(entityUUID));
+                    if (sender instanceof Player) {
+                        isPlayer = true;
+                        Player player = (Player) sender;
+                        playerUUID = player.getUniqueId().toString();
+                        owner = new VillagerOwner(playerUUID);
+                        containVillager = owner.getClaimedVillagersList().contains(entityUUID);
+                        if (containVillager) {
+                            ownerUUID = playerUUID;
+                            ownerName = owner.getName();
                         }
                     }
+
+                    if (!containVillager) {
+                        if (entity == null) {
+                            sender.sendMessage(Locale.getMessage("villager-not-found"));
+                            return true;
+                        }
+                        PersistentDataContainer container = entity.getPersistentDataContainer();
+                        NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
+                        if (!container.has(key, PersistentDataType.STRING)) {
+                            sender.sendMessage(Locale.getMessage("selection.claim.has-not-claimed"));
+                            return true;
+                        }
+
+                        if (isPlayer) {
+                            ownerUUID = container.get(key, PersistentDataType.STRING);
+                            owner = new VillagerOwner(ownerUUID);
+                            ownerName = owner.getName();
+                            if (!sender.hasPermission("myvillager.info.other")) {
+                                sender.sendMessage(Locale.getMessage("no-perm"));
+                                return true;
+                            }
+                        }
+                    }
+
+                    //String ownerUUID = container.get(key, PersistentDataType.STRING);
                     // Add trusted players into the list
                     List<String> players = new ArrayList<>();
                     List<String> groups = owner.getGroups();
@@ -110,7 +134,7 @@ public class  Cmd implements CommandExecutor {
 
                     String permitMessage = null;
                     String playersString = (!groups.isEmpty()) ? String.join(", ", players) : Locale.getMessage("none");
-                    if (sender instanceof Player) {
+                    if (isPlayer) {
                         Player player = (Player) sender;
                         String uuid = player.getUniqueId().toString();
                         boolean permit = uuid.equalsIgnoreCase(ownerUUID) || players.contains(player.getName());
@@ -124,16 +148,37 @@ public class  Cmd implements CommandExecutor {
                         permitMessage = Locale.getMessage("info-console");
                     }
 
-                    Location location = entity.getLocation();
+                    String world = "";
+                    String x = "";
+                    String y = "";
+                    String z;
+                    if (entity == null) {
+                        world = Locale.getMessage("info-no-location");
+                        x = Locale.getMessage("info-no-location");
+                        y = Locale.getMessage("info-no-location");
+                        z = Locale.getMessage("info-no-location");
+                    } else {
+                        Location currentLocation = entity.getLocation();
+                        world = currentLocation.getWorld().getName();
+                        x = String.valueOf(currentLocation.getX());
+                        y = String.valueOf(currentLocation.getY());
+                        z = String.valueOf(currentLocation.getZ());
+                    }
+
+                    Location claimedLocation = owner.getVillagerLocation(entityUUID);
 
                     for (String message : Locale.yaml.getStringList("villager-info")) {
                         message = message.replaceAll("%uuid%", entityUUID); // The UniqueId of the villager
                         message = message.replaceAll("%owner%", ownerName); // The Owner Name
                         message = message.replaceAll("%players%", playersString); // The players who can access to the villager
-                        message = message.replaceAll("%world%", location.getWorld().getName()); // The world name where the villager is in
-                        message = message.replaceAll("%x%", String.valueOf(location.getX())); // The location where the villager is in (x)
-                        message = message.replaceAll("%y%", String.valueOf(location.getY())); // The location where the villager is in (y)
-                        message = message.replaceAll("%z%", String.valueOf(location.getZ())); // The location where the villager is in (z)
+                        message = message.replaceAll("%world%", claimedLocation.getWorld().getName()); // The world name where the villager was claimed in
+                        message = message.replaceAll("%x%", String.valueOf(claimedLocation.getX())); // The location where the villager was claimed in (x)
+                        message = message.replaceAll("%y%", String.valueOf(claimedLocation.getY())); // The location where the villager was claimed in (y)
+                        message = message.replaceAll("%z%", String.valueOf(claimedLocation.getZ())); // The location where the villager was claimed in (z)
+                        message = message.replaceAll("%cworld%", world); // The world name where the villager is in
+                        message = message.replaceAll("%cx%", x); // The location where the villager is in (x)
+                        message = message.replaceAll("%cy%", y); // The location where the villager is in (y)
+                        message = message.replaceAll("%cz%", z); // The location where the villager is in (z)
                         message = message.replaceAll("%permit%", permitMessage);
                         message = Locale.translate(message);
                         sender.sendMessage(message);
@@ -190,8 +235,7 @@ public class  Cmd implements CommandExecutor {
                 int i = ((page-1) * 7) +1;
                 for (String villagerUUID : owner.getClaimedVillagersList()) {
 
-                    Entity villager = Bukkit.getEntity((UUID.fromString(villagerUUID)));
-                    Location location = villager.getLocation();
+                    Location location = owner.getVillagerLocation(villagerUUID);
                     String message = Locale.getMessage("list-text");
                     message = message.replaceAll("%number%", String.valueOf(i)); // The number of the villager
                     message = message.replaceAll("%uuid%", villagerUUID); // The number of the villager

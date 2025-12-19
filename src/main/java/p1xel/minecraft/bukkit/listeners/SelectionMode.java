@@ -29,11 +29,11 @@ public class SelectionMode implements Listener {
     public static boolean isPlayerToggleExist(String playerUUID) { return toggle.get(playerUUID) != null;}
 
     // List of Entity UUID
-    private static HashMap<String, List<String>> selection = new HashMap<>();
-    public static HashMap<String, List<String>> getSelections() { return selection;}
-    public static List<String> getPlayerSelection(String playerUUID) { return selection.get(playerUUID);}
-    public static void putPlayerSelection(String playerUUID, List<String> list) { selection.put(playerUUID,list);}
-    public static void replacePlayerSelection(String playerUUID, List<String> list) { selection.replace(playerUUID,list);}
+    private static HashMap<String, List<Entity>> selection = new HashMap<>();
+    public static HashMap<String, List<Entity>> getSelections() { return selection;}
+    public static List<Entity> getPlayerSelection(String playerUUID) { return selection.get(playerUUID);}
+    public static void putPlayerSelection(String playerUUID, List<Entity> list) { selection.put(playerUUID,list);}
+    public static void replacePlayerSelection(String playerUUID, List<Entity> list) { selection.replace(playerUUID,list);}
     public static boolean isPlayerSelectionExist(String playerUUID) { return selection.get(playerUUID) != null;}
 
     // none/claim/lock/unlock/info/villager-set/villager-unset (also single selection mode)
@@ -106,14 +106,19 @@ public class SelectionMode implements Listener {
             }
 
             Location location = entity.getLocation();
+            Location claimedLocation = owner.getVillagerLocation(entityUUID);
             for (String message : Locale.yaml.getStringList("villager-info")) {
                 message = message.replaceAll("%uuid%", entityUUID); // The UniqueId of the villager
                 message = message.replaceAll("%owner%", ownerName); // The Owner Name
                 message = message.replaceAll("%players%", playersString); // The players who can access to the villager
-                message = message.replaceAll("%world%", location.getWorld().getName()); // The world name where the villager is in
-                message = message.replaceAll("%x%", String.valueOf(location.getX())); // The location where the villager is in (x)
-                message = message.replaceAll("%y%", String.valueOf(location.getY())); // The location where the villager is in (y)
-                message = message.replaceAll("%z%", String.valueOf(location.getZ())); // The location where the villager is in (z)
+                message = message.replaceAll("%world%", claimedLocation.getWorld().getName()); // The world name where the villager is in
+                message = message.replaceAll("%x%", String.valueOf(claimedLocation.getX())); // The location where the villager is in (x)
+                message = message.replaceAll("%y%", String.valueOf(claimedLocation.getY())); // The location where the villager is in (y)
+                message = message.replaceAll("%z%", String.valueOf(claimedLocation.getZ())); // The location where the villager is in (z)
+                message = message.replaceAll("%cworld%", location.getWorld().getName()); // The world name where the villager is in
+                message = message.replaceAll("%cx%", String.valueOf(location.getX())); // The location where the villager is in (x)
+                message = message.replaceAll("%cy%", String.valueOf(location.getY())); // The location where the villager is in (y)
+                message = message.replaceAll("%cz%", String.valueOf(location.getZ())); // The location where the villager is in (z)
                 message = message.replaceAll("%permit%", permitMessage);
                 message = Locale.translate(message);
                 player.sendMessage(message);
@@ -133,15 +138,15 @@ public class SelectionMode implements Listener {
             }
 
             //String ownerUUID = container.get(key, PersistentDataType.STRING);
-            List<String> list = new ArrayList<>(getPlayerSelection(uuid));
+            List<Entity> list = new ArrayList<>(getPlayerSelection(uuid));
 
-            if (list.contains(entityUUID)) {
+            if (list.contains(entity)) {
                 player.sendMessage(Locale.getMessage("selection.claim.already-selected"));
                 event.setCancelled(true);
                 return;
             }
 
-            list.add(entityUUID);
+            list.add(entity);
             replacePlayerSelection(uuid, list);
             player.sendMessage(Locale.getMessage("selection.claim.success"));
             event.setCancelled(true);
@@ -173,7 +178,7 @@ public class SelectionMode implements Listener {
 
             container.set(key, PersistentDataType.STRING, player.getUniqueId().toString());
             VillagerOwner owner = new VillagerOwner(uuid);
-            owner.addVillager(entityUUID);
+            owner.addVillager(entity);
             player.sendMessage(Locale.getMessage("claim-success"));
             if (isVaultEnabled) {
                 double cost = Config.getDouble("claim-cost");
@@ -207,15 +212,15 @@ public class SelectionMode implements Listener {
             }
 
             //String ownerUUID = container.get(key, PersistentDataType.STRING);
-            List<String> list = new ArrayList<>(getPlayerSelection(uuid));
+            List<Entity> list = new ArrayList<>(getPlayerSelection(uuid));
 
-            if (list.contains(entityUUID)) {
+            if (list.contains(entity)) {
                 player.sendMessage(Locale.getMessage("selection.claim.already-selected"));
                 event.setCancelled(true);
                 return;
             }
 
-            list.add(entityUUID);
+            list.add(entity);
             replacePlayerSelection(uuid, list);
             player.sendMessage(Locale.getMessage("selection.lock.success"));
             event.setCancelled(true);
@@ -275,15 +280,15 @@ public class SelectionMode implements Listener {
             }
 
             //String ownerUUID = container.get(key, PersistentDataType.STRING);
-            List<String> list = new ArrayList<>(getPlayerSelection(uuid));
+            List<Entity> list = new ArrayList<>(getPlayerSelection(uuid));
 
-            if (list.contains(entityUUID)) {
+            if (list.contains(entity)) {
                 player.sendMessage(Locale.getMessage("selection.claim.already-selected"));
                 event.setCancelled(true);
                 return;
             }
 
-            list.add(entityUUID);
+            list.add(entity);
             replacePlayerSelection(uuid, list);
             player.sendMessage(Locale.getMessage("selection.villager-set.success"));
             event.setCancelled(true);
@@ -350,15 +355,15 @@ public class SelectionMode implements Listener {
             }
 
             //String ownerUUID = container.get(key, PersistentDataType.STRING);
-            List<String> list = new ArrayList<>(getPlayerSelection(uuid));
+            List<Entity> list = new ArrayList<>(getPlayerSelection(uuid));
 
-            if (list.contains(entityUUID)) {
+            if (list.contains(entity)) {
                 player.sendMessage(Locale.getMessage("selection.claim.already-selected"));
                 event.setCancelled(true);
                 return;
             }
 
-            list.add(entityUUID);
+            list.add(entity);
             replacePlayerSelection(uuid, list);
             player.sendMessage(Locale.getMessage("selection.villager-set.success"));
             event.setCancelled(true);
@@ -411,15 +416,15 @@ public class SelectionMode implements Listener {
             }
 
             //String ownerUUID = container.get(key, PersistentDataType.STRING);
-            List<String> list = new ArrayList<>(getPlayerSelection(uuid));
+            List<Entity> list = new ArrayList<>(getPlayerSelection(uuid));
 
-            if (list.contains(entityUUID)) {
+            if (list.contains(entity)) {
                 player.sendMessage(Locale.getMessage("selection.claim.already-selected"));
                 event.setCancelled(true);
                 return;
             }
 
-            list.add(entityUUID);
+            list.add(entity);
             replacePlayerSelection(uuid, list);
             player.sendMessage(Locale.getMessage("selection.lock.success"));
             event.setCancelled(true);
@@ -464,15 +469,15 @@ public class SelectionMode implements Listener {
             }
 
             //String ownerUUID = container.get(key, PersistentDataType.STRING);
-            List<String> list = new ArrayList<>(getPlayerSelection(uuid));
+            List<Entity> list = new ArrayList<>(getPlayerSelection(uuid));
 
-            if (list.contains(entityUUID)) {
+            if (list.contains(entity)) {
                 player.sendMessage(Locale.getMessage("selection.claim.already-selected"));
                 event.setCancelled(true);
                 return;
             }
 
-            list.add(entityUUID);
+            list.add(entity);
             replacePlayerSelection(uuid, list);
             player.sendMessage(Locale.getMessage("selection.remove.success"));
             event.setCancelled(true);
@@ -533,7 +538,7 @@ public class SelectionMode implements Listener {
             @Override
             public void run() {
                 String mode = SelectionMode.getPlayerMode(uuid);
-                List<String> entities = SelectionMode.getPlayerSelection(uuid);
+                List<Entity> entities = SelectionMode.getPlayerSelection(uuid);
                 VillagerOwner owner = new VillagerOwner(uuid);
 
                 switch (mode) {
@@ -551,12 +556,18 @@ public class SelectionMode implements Listener {
                             }
                         }
 
-                        for (String villagerUUID : entities) {
+                        for (Entity villager : entities) {
 
-                            Entity villager = Bukkit.getEntity(UUID.fromString(villagerUUID));
+                            String villagerUUID = villager.getUniqueId().toString();
                             NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
-                            villager.getPersistentDataContainer().set(key, PersistentDataType.STRING, uuid);
-                            owner.addVillager(villagerUUID);
+                            PersistentDataContainer container = villager.getPersistentDataContainer();
+                            if (container.has(key, PersistentDataType.STRING)) {
+                                p.sendMessage(Locale.getMessage("selection.claim.already-claimed"));
+                                event.setCancelled(true);
+                                continue;
+                            }
+                            container.set(key, PersistentDataType.STRING, uuid);
+                            owner.addVillager(villager);
 
                         }
 
@@ -569,7 +580,8 @@ public class SelectionMode implements Listener {
                         break;
 
                     case "lock":
-                        for (String villagerUUID : entities) {
+                        for (Entity villager : entities) {
+                            String villagerUUID = villager.getUniqueId().toString();
                             boolean newResult = !owner.isLock(villagerUUID);
                             owner.setLock(villagerUUID, newResult);
 
@@ -580,7 +592,8 @@ public class SelectionMode implements Listener {
 
                     case "villager-set":
                         group = MyVillager.getCache().getValue(uuid);
-                        for (String villagerUUID : entities) {
+                        for (Entity villager : entities) {
+                            String villagerUUID = villager.getUniqueId().toString();
                             owner.addVillagerToGroup(group, villagerUUID);
                         }
 
@@ -589,7 +602,8 @@ public class SelectionMode implements Listener {
 
                     case "villager-unset":
                         group = MyVillager.getCache().getValue(uuid);
-                        for (String villagerUUID : entities) {
+                        for (Entity villager : entities) {
+                            String villagerUUID = villager.getUniqueId().toString();
                             owner.removeVillagerFromGroup(group, villagerUUID);
                         }
 
@@ -597,10 +611,17 @@ public class SelectionMode implements Listener {
                         break;
 
                     case "admin-lock":
-                        for (String villagerUUID : entities) {
+                        for (Entity villager : entities) {
+                            String villagerUUID = villager.getUniqueId().toString();
                             Entity entity = Bukkit.getEntity(UUID.fromString(villagerUUID));
                             NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
-                            String ownerUUID = entity.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+                            PersistentDataContainer container = entity.getPersistentDataContainer();
+                            if (!container.has(key, PersistentDataType.STRING)) {
+                                p.sendMessage(Locale.getMessage("selection.claim.has-not-claimed"));
+                                event.setCancelled(true);
+                                return;
+                            }
+                            String ownerUUID = container.get(key, PersistentDataType.STRING);
                             owner = new VillagerOwner(ownerUUID);
 
                             boolean newResult = !owner.isLock(villagerUUID);
@@ -612,10 +633,17 @@ public class SelectionMode implements Listener {
                         break;
 
                     case "admin-remove":
-                        for (String villagerUUID : entities) {
+                        for (Entity villager : entities) {
+                            String villagerUUID = villager.getUniqueId().toString();
                             Entity entity = Bukkit.getEntity(UUID.fromString(villagerUUID));
                             NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
-                            String ownerUUID = entity.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+                            PersistentDataContainer container = entity.getPersistentDataContainer();
+                            if (!container.has(key, PersistentDataType.STRING)) {
+                                p.sendMessage(Locale.getMessage("selection.claim.has-not-claimed"));
+                                event.setCancelled(true);
+                                return;
+                            }
+                            String ownerUUID = container.get(key, PersistentDataType.STRING);
                             owner = new VillagerOwner(ownerUUID);
                             owner.removeVillager(villagerUUID);
                             for (String g : owner.getGroups()) {
