@@ -1,27 +1,64 @@
 language: zh_CN
 plugin-name: MyVillager
-commands-plugin-name: myvillager
 commands:
-  top: '&8&m                                                   '
-  plugin: '                &b&lMyVillager %version%'
-  space-1: '&f'
-  help: '&7/%prefix% help &a查看帮助'
-  claim: '&7/%prefix% claim <single/multiple> &a认领村民'
-  lock: '&7/%prefix% lock <single/multiple> &a启用或关闭村民的使用权限.'
-  info: '&7/%prefix% info [UniqueId] &a查看已认领村民的信息'
-  list: '&7/%prefix% list &a查看你所有的已认领村民'
-  group-create: '&7/%prefix% group create <组> &a创建权限组'
-  group-delete: '&7/%prefix% group delete <group> &a移除权限组'
-  group-info: '&7/%prefix% group info <group> &a查看权限组'
-  player-set: '&7/%prefix% player <player> set <group> &a将玩家加入权限组'
-  player-unset: '&7/%prefix% player <player> unset <group> &a将玩家移出组'
-  villager-set: '&7/%prefix% villager <single/multiple> set <group> &a将村民加入权限组'
-  villager-unset: '&7/%prefix% villager <single/multiple> unset <group> &a将村民移出权限组'
-  admin-lock: '&7/%prefix% admin lock <single/multiple> &a强制启用或关闭某个被认领村民的使用权限.'
-  admin-remove: '&7/%prefix% admin remove <single/multiple> &a强制移除被认领村民的认领信息及其主人'
-  reload: '&7/%prefix% reload &a重载配置文件'
-  space-8: '&f'
-  bottom: '&8&m                                                   '
+  claim:
+    usage: '/myvillager claim [multiple]'
+    description: '认领村民'
+  lock:
+    usage: '/myvillager lock [multiple]'
+    description: '开关村民访问权限'
+  info:
+    usage: '/myvillager info'
+    description: '村民信息'
+  list:
+    usage: '/myvillager list'
+    description: '已认领村民列表'
+  group:
+    usage: '/myvillager group'
+    description: '权限组管理指令'
+    children:
+      create:
+        usage: 'create <组>'
+        description: '创建权限组'
+      delete:
+        usage: 'delete <组>'
+        description: '删除权限组'
+      info:
+        usage: 'info <组>'
+        description: '权限组信息'
+      set:
+        usage: 'set <组>'
+        description: '新增玩家或村民至权限组中'
+        children:
+          player:
+            usage: 'player <玩家>'
+            description: '新增玩家至组中'
+          villager:
+            usage: 'villager [multiple]'
+            description: '新增村民至组中'
+      unset:
+        usage: 'unset <组>'
+        description: '将玩家或村民移出权限组'
+        children:
+          player:
+            usage: 'player <玩家>'
+            description: '从组中移出玩家'
+          villager:
+            usage: 'villager [multiple]'
+            description: '从组中移出村民'
+  admin:
+    usage: '/myvillager admin'
+    description: '管理指令'
+    children:
+      lock:
+        usage: 'lock [multiple]'
+        description: '强制开关村民的访问权限'
+      remove:
+        usage: 'remove [multiple]'
+        description: '强制移除已被认证村民的认证信息'
+  reload:
+    usage: '/myvillager reload'
+    description: '重载配置文件'
 
 no-perm: '&b&l%prefix% &8&l| &c你没有权限这么做!'
 must-be-player: '&b&l%prefix% &8&l| &c你必须是名玩家!'
@@ -49,6 +86,8 @@ villager-unset-success: '&b&l%prefix% &8&l| &a该村民被移出组 &e%group%&a 
 remove-success: '&b&l%prefix% &8&l| &a该村民成功被移除认领信息!'
 reload-success: '&b&l%prefix% &8&l| &a配置文件重载成功!'
 villager-not-found: '&b&l%prefix% &8&l| &c错误的村民UUID.'
+deny-message: '&c你不能对该已认领的村民这么做   '
+incorrect-argument: '&b&l%prefix% &8&l| &c错误参数'
 
 view-info-text: '&e[查看资料]'
 view-info-hover: '&7点击查看村民的信息'
@@ -66,6 +105,9 @@ info-can-access: '&b你可以与该村民交易!'
 info-no-perm: '&c你无法与该村民交易!'
 info-console: '&c我不确定你是不是有能力与村民交易...'
 info-no-location: 'X'
+command-click: '&a点击执行/输入指令'
+command-click-info: '&e左键点击指令 | single单选 multiple多选'
+group: '组'
 
 list-page: '&a已认领村民列表 &7- &d页数 %page% &7/ %max_page%'
 list-text: '&a%number%. &7- &6%uuid% &7- &b%world% &7(&b%x%&7,&b%y%&7,&b%z%&7) '
@@ -92,6 +134,9 @@ selection:
     success: '&b&l%prefix% &8&l| &a村民已被添加至选择清单中! 你可以继续选择村民或者输入ok将村民添加至组中'
   remove:
     success: '&b&l%prefix% &8&l| &a村民已被添加至选择清单中! 你可以继续选择村民或者输入ok移除村民的认领信息'
+  title:
+    title: '&a你正在处于选择模式'
+    subtitle: '&b右键选择村民或输入 ok 结束选择'
 
 vault:
   not-enough-money: '&b&l%prefix% &8&l| &c没有足够的金钱 (仍然需要 $%remain%)'

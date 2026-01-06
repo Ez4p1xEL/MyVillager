@@ -1,14 +1,13 @@
 main: p1xel.minecraft.bukkit.MyVillager
 name: MyVillager
-version: 1.2.1
+version: ${project.version}
 api-version: 1.13
+folia-supported: true
 commands:
   myvillager:
     aliases: [mv, myv]
 
 permissions:
-  myvillager.help:
-    default: true
   myvillager.claim:
     default: true
   myvillager.lock:
@@ -19,20 +18,28 @@ permissions:
     default: true
   myvillager.list:
     default: true
+  myvillager.group:
+    default: true
   myvillager.group.create:
     default: true
   myvillager.group.delete:
     default: true
   myvillager.group.info:
     default: true
-  myvillager.player.set:
+  myvillager.group.set:
     default: true
-  myvillager.player.unset:
+  myvillager.group.unset:
     default: true
-  myvillager.villager.set:
+  myvillager.group.set.player:
     default: true
-  myvillager.villager.unset:
+  myvillager.group.unset.player:
     default: true
+  myvillager.group.set.villager:
+    default: true
+  myvillager.group.unset.villager:
+    default: true
+  myvillager.admin:
+    default: op
   myvillager.admin.lock:
     default: op
   myvillager.admin.remove:

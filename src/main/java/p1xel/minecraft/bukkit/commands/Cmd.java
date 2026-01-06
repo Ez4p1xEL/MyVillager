@@ -4,778 +4,165 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
-import p1xel.minecraft.bukkit.listeners.SelectionMode;
 import p1xel.minecraft.bukkit.MyVillager;
 import p1xel.minecraft.bukkit.utils.Locale;
-import p1xel.minecraft.bukkit.VillagerOwner;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-public class  Cmd implements CommandExecutor {
+public class Cmd implements CommandExecutor {
+
+    void sendHelpMessage(CommandSender sender, String head, String arg) {
+
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&0&m                                         "));
+        sender.sendMessage("§bMyVillager " + MyVillager.getInstance().getDescription().getVersion());
+        sender.sendMessage(Locale.getMessage("command-click-info"));
+        sender.sendMessage("");
+
+        String path = "commands";
+        if (head != null) {
+            path = path + "." + head + ".children";
+        }
+        String head_command = " ";
+        if (arg != null) {
+            String[] args = arg.split(" ");
+            List<String> heads = new ArrayList<>();
+            for (int i = 0;i < args.length; i++) {
+                // 獲取前面指令Usage
+                p1xel.minecraft.bukkit.commands.Command command = CommandRegistry.getCommands().get(String.join(" ", Arrays.copyOfRange(args, 0, i+1)));
+                if (command == null) { continue; }
+                heads.add(command.getUsage().replaceAll("/myvillager ", "").replaceAll("\\[multiple]", ""));
+            }
+            head_command = " " + String.join(" ", heads) + " ";
+        }
+
+        for (String name : Locale.yaml.getConfigurationSection(path).getKeys(false)) {
+            String cmd = arg == null ? name : arg + " " + name;
+            p1xel.minecraft.bukkit.commands.Command command = CommandRegistry.getCommands().get(cmd);
+
+            if (command == null) {
+                continue;
+            }
+
+            if (!sender.hasPermission("myvillager." + command.getName().replaceAll(" ", "."))) {
+                continue;
+            }
+
+            String click_command = "/myvillager" + head_command + command.getUsage().replaceAll("/myvillager ", "").replaceAll("\\[multiple]", "");
+            TextComponent text = new TextComponent("§7- " + command.getUsage().replaceAll("/myvillager ", ""));
+            ClickEvent.Action click_action = command.isExecutable() ? ClickEvent.Action.RUN_COMMAND : ClickEvent.Action.SUGGEST_COMMAND;
+            if (command.isExecutable()) {
+                click_command = click_command.replaceAll(" <" + Locale.getMessage("group") + ">", "");
+            }
+            text.setClickEvent(new ClickEvent(click_action, click_command));
+            text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(Locale.getMessage("command-click")).create()));
+            sender.spigot().sendMessage(text);
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a" + command.getDescription()));
+            sender.sendMessage("");
+
+        }
+
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&0&m                                         "));
+
+    }
 
     @Override
     @ParametersAreNonnullByDefault
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
-        if (args.length == 0) {
-            sender.sendMessage(Locale.getMessage("commands.help"));
-            return true;
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
         }
 
-        if (args.length >= 1) {
+        if (args.length == 0) {
 
-            if (args[0].equalsIgnoreCase("info")) {
-
-                if (args.length == 1) {
-                    if (!sender.hasPermission("myvillager.info")) {
-                        sender.sendMessage(Locale.getMessage("no-perm"));
-                        return true;
-                    }
-
-                    if (!(sender instanceof Player)) {
-                        sender.sendMessage(Locale.getMessage("must-be-player"));
-                        return true;
-                    }
-
-                    Player player = (Player) sender;
-                    String uuid = player.getUniqueId().toString();
-
-                    if (SelectionMode.getPlayerToggle(uuid)) {
-                        sender.sendMessage(Locale.getMessage("already-in-selection"));
-                        return true;
-                    }
-
-                    SelectionMode.replacePlayerToggle(uuid, true);
-                    SelectionMode.replacePlayerMode(uuid, "info");
-                    sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                    return true;
-
-                }
-
-                if (args.length == 2) {
-
-                    if (!sender.hasPermission("myvillager.info")) {
-                        sender.sendMessage(Locale.getMessage("no-perm"));
-                        return true;
-                    }
-
-                    String entityUUID = args[1];
-
-                    boolean isPlayer = false;
-                    boolean containVillager = false;
-                    VillagerOwner owner = null;
-                    String playerUUID = null;
-                    String ownerUUID = null;
-                    String ownerName = null;
-                    Entity entity = Bukkit.getEntity(UUID.fromString(entityUUID));
-                    if (sender instanceof Player) {
-                        isPlayer = true;
-                        Player player = (Player) sender;
-                        playerUUID = player.getUniqueId().toString();
-                        owner = new VillagerOwner(playerUUID);
-                        containVillager = owner.getClaimedVillagersList().contains(entityUUID);
-                        if (containVillager) {
-                            ownerUUID = playerUUID;
-                            ownerName = owner.getName();
-                        }
-                    }
-
-                    if (!containVillager) {
-                        if (entity == null) {
-                            sender.sendMessage(Locale.getMessage("villager-not-found"));
-                            return true;
-                        }
-                        PersistentDataContainer container = entity.getPersistentDataContainer();
-                        NamespacedKey key = new NamespacedKey(MyVillager.getInstance(), "MyVillager");
-                        if (!container.has(key, PersistentDataType.STRING)) {
-                            sender.sendMessage(Locale.getMessage("selection.claim.has-not-claimed"));
-                            return true;
-                        }
-
-                        if (isPlayer) {
-                            ownerUUID = container.get(key, PersistentDataType.STRING);
-                            owner = new VillagerOwner(ownerUUID);
-                            ownerName = owner.getName();
-                            if (!sender.hasPermission("myvillager.info.other")) {
-                                sender.sendMessage(Locale.getMessage("no-perm"));
-                                return true;
-                            }
-                        }
-                    }
-
-                    //String ownerUUID = container.get(key, PersistentDataType.STRING);
-                    // Add trusted players into the list
-                    List<String> players = new ArrayList<>();
-                    List<String> groups = owner.getGroups();
-                    for (String group : groups) {
-                        if (owner.getGroupVillagers(group).contains((entityUUID))) {
-                            List<String> playersList = owner.getGroupPlayers(group);
-                            // transfer from UUID to Name
-                            for (String groupPlayerUUID : playersList) {
-                                String groupPlayerName = Bukkit.getOfflinePlayer(UUID.fromString(groupPlayerUUID)).getName();
-                                players.add(groupPlayerName);
-                            }
-                        }
-                    }
-
-                    String permitMessage = null;
-                    String playersString = (!groups.isEmpty()) ? String.join(", ", players) : Locale.getMessage("none");
-                    if (isPlayer) {
-                        Player player = (Player) sender;
-                        String uuid = player.getUniqueId().toString();
-                        boolean permit = uuid.equalsIgnoreCase(ownerUUID) || players.contains(player.getName());
-
-                        if (permit) {
-                            permitMessage = Locale.getMessage("info-can-access");
-                        } else {
-                            permitMessage = Locale.getMessage("info-no-perm");
-                        }
-                    } else {
-                        permitMessage = Locale.getMessage("info-console");
-                    }
-
-                    String world = "";
-                    String x = "";
-                    String y = "";
-                    String z;
-                    if (entity == null) {
-                        world = Locale.getMessage("info-no-location");
-                        x = Locale.getMessage("info-no-location");
-                        y = Locale.getMessage("info-no-location");
-                        z = Locale.getMessage("info-no-location");
-                    } else {
-                        Location currentLocation = entity.getLocation();
-                        world = currentLocation.getWorld().getName();
-                        x = String.valueOf(currentLocation.getX());
-                        y = String.valueOf(currentLocation.getY());
-                        z = String.valueOf(currentLocation.getZ());
-                    }
-
-                    Location claimedLocation = owner.getVillagerLocation(entityUUID);
-
-                    for (String message : Locale.yaml.getStringList("villager-info")) {
-                        message = message.replaceAll("%uuid%", entityUUID); // The UniqueId of the villager
-                        message = message.replaceAll("%owner%", ownerName); // The Owner Name
-                        message = message.replaceAll("%players%", playersString); // The players who can access to the villager
-                        message = message.replaceAll("%world%", claimedLocation.getWorld().getName()); // The world name where the villager was claimed in
-                        message = message.replaceAll("%x%", String.valueOf(claimedLocation.getX())); // The location where the villager was claimed in (x)
-                        message = message.replaceAll("%y%", String.valueOf(claimedLocation.getY())); // The location where the villager was claimed in (y)
-                        message = message.replaceAll("%z%", String.valueOf(claimedLocation.getZ())); // The location where the villager was claimed in (z)
-                        message = message.replaceAll("%cworld%", world); // The world name where the villager is in
-                        message = message.replaceAll("%cx%", x); // The location where the villager is in (x)
-                        message = message.replaceAll("%cy%", y); // The location where the villager is in (y)
-                        message = message.replaceAll("%cz%", z); // The location where the villager is in (z)
-                        message = message.replaceAll("%permit%", permitMessage);
-                        message = Locale.translate(message);
-                        sender.sendMessage(message);
-                    }
-                    return true;
-
-                }
-            }
-
-            if (args[0].equalsIgnoreCase("list")) {
-
-                if (!sender.hasPermission("myvillager.list")) {
-                    sender.sendMessage(Locale.getMessage("no-perm"));
-                    return true;
-                }
-
-                if (!(sender instanceof Player)) {
-                    sender.sendMessage(Locale.getMessage("must-be-player"));
-                    return true;
-                }
-
-                int page = 1;
-                if (args.length == 2) {
-                    try {
-                        page = Integer.parseInt(args[1]);
-                    } catch (Exception e) {
-                        sender.sendMessage(Locale.getMessage("number-invalid"));
-                        return true;
-                    }
-                }
-
-                if (page < 1) {
-                    sender.sendMessage(Locale.getMessage("invalid-page"));
-                    return true;
-                }
-
-                Player player = (Player) sender;
-                String uuid = player.getUniqueId().toString();
-                VillagerOwner owner = new VillagerOwner(uuid);
-
-                int amount = owner.getVillagerAmount();
-                if (amount <= 0) {
-                    sender.sendMessage(Locale.getMessage("no-record"));
-                    return true;
-                }
-
-                int max_page = (int) Math.ceil((double) amount / 7);
-                if (page > max_page) {
-                    sender.sendMessage(Locale.getMessage("invalid-page"));
-                    return true;
-                }
-
-                sender.sendMessage(Locale.getMessage("list-page").replaceAll("%page%", String.valueOf(page)).replaceAll("%max_page%", String.valueOf(max_page)));
-                int i = ((page-1) * 7) +1;
-                for (String villagerUUID : owner.getClaimedVillagersList()) {
-
-                    Location location = owner.getVillagerLocation(villagerUUID);
-                    String message = Locale.getMessage("list-text");
-                    message = message.replaceAll("%number%", String.valueOf(i)); // The number of the villager
-                    message = message.replaceAll("%uuid%", villagerUUID); // The number of the villager
-                    message = message.replaceAll("%world%", location.getWorld().getName());
-                    message = message.replaceAll("%x%", String.valueOf(location.getX()));
-                    message = message.replaceAll("%y%", String.valueOf(location.getY()));
-                    message = message.replaceAll("%z%", String.valueOf(location.getZ()));
-                    TextComponent front = new TextComponent(message);
-                    TextComponent button = new TextComponent(Locale.getMessage("view-info-text"));
-                    button.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(Locale.getMessage("view-info-hover")).create()));
-                    button.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/myvillager info " + villagerUUID));
-                    sender.spigot().sendMessage(front, button);
-                    i++;
-
-                }
-
-                return true;
-
-            }
-
+           sendHelpMessage(sender, null, null);
+           return true;
         }
 
         if (args.length == 1) {
 
-            if (args[0].equalsIgnoreCase("reload")) {
-                if (!sender.hasPermission("myvillager.reload")) {
-                    sender.sendMessage(Locale.getMessage("no-perm"));
-                    return true;
-                }
-
-                MyVillager.getInstance().reloadConfig();
-                Locale.createLocaleFile();
-                sender.sendMessage(Locale.getMessage("reload-success"));
+            p1xel.minecraft.bukkit.commands.Command command = CommandRegistry.getCommands().get(args[0]);
+            if (command == null) {
+                sender.sendMessage(Locale.getMessage("incorrect-argument"));
                 return true;
-
             }
 
-            if (args[0].equalsIgnoreCase("help")) {
-
-                if (!sender.hasPermission("myvillager.help")) {
-                    sender.sendMessage(Locale.getMessage("no-perm"));
-                    return true;
-                }
-
-                sender.sendMessage(Locale.getMessage("commands.top"));
-                sender.sendMessage(Locale.getMessage("commands.plugin"));
-                sender.sendMessage(Locale.getMessage("commands.space-1"));
-
-                int i = 0;
-                for (String key : Locale.yaml.getConfigurationSection("commands").getKeys(false)) {
-                    i++;
-                    if (i <= 3 || i >= 19) {
-                        continue;
-                    }
-
-                    if (sender.hasPermission("myvillager." + key.replaceAll("-", "."))) {
-                        sender.sendMessage(Locale.getMessage("commands." + key));
-                    }
-
-                }
-
-                sender.sendMessage(Locale.getMessage("commands.space-8"));
-                sender.sendMessage(Locale.getMessage("commands.bottom"));
-
+            if (args[0].equals("group") || args[0].equals("admin")) {
+                sendHelpMessage(sender, args[0], args[0]);
+                return true;
             }
 
         }
 
         if (args.length == 2) {
 
-            if (args[0].equalsIgnoreCase("claim")) {
+            if (!args[0].equals("list") && !args[0].equals("info")) {
 
-                if (!sender.hasPermission("myvillager.claim")) {
-                    sender.sendMessage(Locale.getMessage("no-perm"));
+                p1xel.minecraft.bukkit.commands.Command command = CommandRegistry.getCommands().get(args[0] + " " + args[1]);
+                if (command == null) {
+                    sender.sendMessage(Locale.getMessage("incorrect-argument"));
                     return true;
                 }
 
-                if (!(sender instanceof Player)) {
-                    sender.sendMessage(Locale.getMessage("must-be-player"));
+                if (args[1].equals("set") || args[1].equals("unset")) {
+                    sendHelpMessage(sender, args[0] + ".children." + args[1], args[0] + " " + args[1]);
                     return true;
+//                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&0&m                                         "));
+//                sender.sendMessage("§fMyVillager " + MyVillager.getInstance().getDescription().getVersion());
+//                sender.sendMessage(Locale.getMessage("click-command-info"));
+//                sender.sendMessage("");
+//
+//                for (String name : Locale.yaml.getConfigurationSection("commands." + args[0] + ".children." + args[1] + ".children").getKeys(false)) {
+//
+//                    p1xel.minecraft.bukkit.commands.Command inside_command = CommandRegistry.getCommands().get(args[0] + " " + name);
+//
+//                    if (inside_command == null) {
+//                        continue;
+//                    }
+//                    TextComponent text = new TextComponent("§7" + inside_command.getUsage().replaceAll("/myvillager ", ""));
+//                    text.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command.getUsage() + " " + inside_command.getUsage().replaceAll("\\[multiple]", "")));
+//                    text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(Locale.getMessage("command-click")).create()));
+//                    sender.spigot().sendMessage(text);
+//                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8" + command.getDescription()));
+//                    sender.sendMessage("");
+//
+//                }
+//
+//                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&0&m                                         "));
                 }
-
-                if (args[1].equalsIgnoreCase("multiple")) {
-
-                    Player p = (Player) sender;
-                    String uuid = p.getUniqueId().toString();
-
-                    if (SelectionMode.getPlayerToggle(uuid)) {
-                        sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                        return true;
-                    }
-
-                    SelectionMode.replacePlayerToggle(uuid, true);
-                    SelectionMode.replacePlayerMode(uuid, "claim");
-                    sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                    return true;
-
-                }
-
-                if (args[1].equalsIgnoreCase("single")) {
-
-                    Player p = (Player) sender;
-                    String uuid = p.getUniqueId().toString();
-
-                    if (SelectionMode.getPlayerToggle(uuid)) {
-                        sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                        return true;
-                    }
-
-                    SelectionMode.replacePlayerToggle(uuid, true);
-                    SelectionMode.replacePlayerMode(uuid, "claim-single");
-                    sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                    return true;
-
-                }
-
-            }
-
-            if (args[0].equalsIgnoreCase("lock")) {
-
-                if (!sender.hasPermission("myvillager.lock")) {
-                    sender.sendMessage(Locale.getMessage("no-perm"));
-                    return true;
-                }
-
-                if (!(sender instanceof Player)) {
-                    sender.sendMessage(Locale.getMessage("must-be-player"));
-                    return true;
-                }
-
-                if (args[1].equalsIgnoreCase("multiple")) {
-
-                    Player p = (Player) sender;
-                    String uuid = p.getUniqueId().toString();
-
-                    if (SelectionMode.getPlayerToggle(uuid)) {
-                        sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                        return true;
-                    }
-
-                    SelectionMode.replacePlayerToggle(uuid, true);
-                    SelectionMode.replacePlayerMode(uuid, "lock");
-                    sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                    return true;
-
-                }
-
-                if (args[1].equalsIgnoreCase("single")) {
-
-                    Player p = (Player) sender;
-                    String uuid = p.getUniqueId().toString();
-
-                    if (SelectionMode.getPlayerToggle(uuid)) {
-                        sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                        return true;
-                    }
-
-                    SelectionMode.replacePlayerToggle(uuid, true);
-                    SelectionMode.replacePlayerMode(uuid, "lock-single");
-                    sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                    return true;
-
-                }
-
             }
 
         }
+        String[] new_args = args;
+        try {
+            int page_number = Integer.parseInt(args[args.length -1]);
+            new_args = Arrays.copyOfRange(args, 0, new_args.length-1);
+        } catch (NumberFormatException ignored) {}
 
-        if (args.length == 3) {
-
-            if (args[0].equalsIgnoreCase("group")) {
-
-                if (args[1].equalsIgnoreCase("create")) {
-
-                    if (!sender.hasPermission("myvillager.group.create")) {
-                        sender.sendMessage(Locale.getMessage("no-perm"));
-                        return true;
-                    }
-
-                    if (!(sender instanceof Player)) {
-                        sender.sendMessage(Locale.getMessage("must-be-player"));
-                        return true;
-                    }
-
-                    String group = args[2];
-                    Player player = (Player) sender;
-                    String uuid = player.getUniqueId().toString();
-                    VillagerOwner owner = new VillagerOwner(uuid);
-                    if (owner.getGroups().contains(group)) {
-                        sender.sendMessage(Locale.getMessage("group-already-exist").replaceAll("%group%", group));
-                        return true;
-                    }
-
-                    owner.createGroup(group);
-                    sender.sendMessage(Locale.getMessage("group-create-success").replaceAll("%group%", group));
-                    return true;
-
-                }
-
-                if (args[1].equalsIgnoreCase("delete")) {
-
-                    if (!sender.hasPermission("myvillager.group.delete")) {
-                        sender.sendMessage(Locale.getMessage("no-perm"));
-                        return true;
-                    }
-
-                    if (!(sender instanceof Player)) {
-                        sender.sendMessage(Locale.getMessage("must-be-player"));
-                        return true;
-                    }
-
-                    String group = args[2];
-                    Player player = (Player) sender;
-                    String uuid = player.getUniqueId().toString();
-                    VillagerOwner owner = new VillagerOwner(uuid);
-                    if (!owner.getGroups().contains(group)) {
-                        sender.sendMessage(Locale.getMessage("group-not-exist").replaceAll("%group%", group));
-                        return true;
-                    }
-
-                    owner.removeGroup(group);
-                    sender.sendMessage(Locale.getMessage("group-delete-success").replaceAll("%group%", group));
-                    return true;
-                }
-
-                if (args[1].equalsIgnoreCase("info")) {
-
-                    if (!sender.hasPermission("myvillager.group.info")) {
-                        sender.sendMessage(Locale.getMessage("no-perm"));
-                        return true;
-                    }
-
-                    if (!(sender instanceof Player)) {
-                        sender.sendMessage(Locale.getMessage("must-be-player"));
-                        return true;
-                    }
-
-                    String group = args[2];
-                    Player player = (Player) sender;
-                    String uuid = player.getUniqueId().toString();
-                    VillagerOwner owner = new VillagerOwner(uuid);
-                    if (!owner.getGroups().contains(group)) {
-                        sender.sendMessage(Locale.getMessage("group-not-exist").replaceAll("%group%", group));
-                        return true;
-                    }
-
-                    List<String> playersUUID = owner.getGroupPlayers(group);
-                    // Add trusted players into the list
-                    List<String> players = new ArrayList<>();
-                    // transfer from UUID to Name
-                    for (String groupPlayerUUID : playersUUID) {
-                        String groupPlayerName = Bukkit.getOfflinePlayer(UUID.fromString(groupPlayerUUID)).getName();
-                        players.add(groupPlayerName);
-                    }
-                    String playersString = (!players.isEmpty()) ? String.join(", ", players) : Locale.getMessage("none");
-                    List<String> numList = new ArrayList<>();
-                    for (String villagerUUID : owner.getGroupVillagers(group)) {
-                        int num = 1;
-                        for (String entityUUID : owner.getClaimedVillagersList()) {
-                            if (villagerUUID.equalsIgnoreCase(entityUUID)) {
-                                numList.add(String.valueOf(num));
-                            }
-                            num++;
-                        }
-                    }
-                    String numbers = (!numList.isEmpty()) ? String.join(", ", numList) : Locale.getMessage("none");
-
-                    for (String message : Locale.yaml.getStringList("group-info")) {
-                        message = message.replaceAll("%group%", group); // The name of the group
-                        message = message.replaceAll("%players%", playersString); // The list of trusted players
-                        message = message.replaceAll("%numbers%", numbers); // The claimed villagers' numbers
-                        message = Locale.translate(message);
-                        sender.sendMessage(message);
-                    }
-
-                    return true;
-
-                }
-
-            }
-
-            if (args[0].equalsIgnoreCase("admin")) {
-
-                if (args[1].equalsIgnoreCase("lock")) {
-
-                    if (!sender.hasPermission("myvillager.admin.lock")) {
-                        sender.sendMessage(Locale.getMessage("no-perm"));
-                        return true;
-                    }
-
-                    if (!(sender instanceof Player)) {
-                        sender.sendMessage(Locale.getMessage("must-be-player"));
-                        return true;
-                    }
-
-                    Player player = (Player) sender;
-                    String uuid = player.getUniqueId().toString();
-
-                    if (args[2].equalsIgnoreCase("single")) {
-
-                        SelectionMode.replacePlayerToggle(uuid, true);
-                        SelectionMode.replacePlayerMode(uuid, "admin-lock-single");
-                        sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                        return true;
-                    }
-
-                    if (args[2].equalsIgnoreCase("multiple")) {
-
-                        SelectionMode.replacePlayerToggle(uuid, true);
-                        SelectionMode.replacePlayerMode(uuid, "admin-lock");
-                        sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                        return true;
-
-                    }
-
-                }
-
-                if (args[1].equalsIgnoreCase("remove")) {
-
-                    if (!sender.hasPermission("myvillager.admin.remove")) {
-                        sender.sendMessage(Locale.getMessage("no-perm"));
-                        return true;
-                    }
-
-                    if (!(sender instanceof Player)) {
-                        sender.sendMessage(Locale.getMessage("must-be-player"));
-                        return true;
-                    }
-
-                    Player player = (Player) sender;
-                    String uuid = player.getUniqueId().toString();
-
-                    if (args[2].equalsIgnoreCase("single")) {
-
-                        SelectionMode.replacePlayerToggle(uuid, true);
-                        SelectionMode.replacePlayerMode(uuid, "admin-remove-single");
-                        sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                        return true;
-                    }
-
-                    if (args[2].equalsIgnoreCase("multiple")) {
-
-                        SelectionMode.replacePlayerToggle(uuid, true);
-                        SelectionMode.replacePlayerMode(uuid, "admin-remove");
-                        sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                        return true;
-
-                    }
-
-                }
-
-            }
-
+        try {
+            UUID uniqueId = UUID.fromString(args[args.length-1]);
+            new_args = Arrays.copyOfRange(args, 0, new_args.length-1);
+        } catch (IllegalArgumentException ignored) {}
+        String arg = String.join(" ", new_args);
+        p1xel.minecraft.bukkit.commands.Command command = CommandRegistry.getCommands().get(arg);
+        if (command == null) {
+            sender.sendMessage(Locale.getMessage("incorrect-argument"));
+            return true;
         }
 
-        if (args.length == 4) {
+        command.execute(sender, args);
+        return true;
 
-            if (args[0].equalsIgnoreCase("player") && args[2].equalsIgnoreCase("set")) {
-
-                if (!sender.hasPermission("myvillager.player.set")) {
-                    sender.sendMessage(Locale.getMessage("no-perm"));
-                    return true;
-                }
-
-                if (!(sender instanceof Player)) {
-                    sender.sendMessage(Locale.getMessage("must-be-player"));
-                    return true;
-                }
-
-                OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
-                if (!target.hasPlayedBefore()) {
-                    sender.sendMessage(Locale.getMessage("player-not-exist"));
-                    return true;
-                }
-
-                String targetUUID = target.getUniqueId().toString();
-                Player player = (Player) sender;
-                String uuid = player.getUniqueId().toString();
-                VillagerOwner owner = new VillagerOwner(uuid);
-                if (!owner.getGroups().contains(args[3])) {
-                    sender.sendMessage(Locale.getMessage("group-not-exist").replaceAll("%group%", args[3]));
-                    return true;
-                }
-
-                if (owner.getGroupPlayers(args[3]).contains(targetUUID)) {
-                    sender.sendMessage(Locale.getMessage("player-already-in-group").replaceAll("%group%", args[3]));
-                    return true;
-                }
-
-                owner.addPlayerToGroup(args[3], targetUUID);
-                sender.sendMessage(Locale.getMessage("player-set-success").replaceAll("%player%", args[1]).replaceAll("%group%", args[3]));
-                return true;
-
-            }
-
-            if (args[0].equalsIgnoreCase("player") && args[2].equalsIgnoreCase("unset")) {
-
-                if (!sender.hasPermission("myvillager.player.unset")) {
-                    sender.sendMessage(Locale.getMessage("no-perm"));
-                    return true;
-                }
-
-                if (!(sender instanceof Player)) {
-                    sender.sendMessage(Locale.getMessage("must-be-player"));
-                    return true;
-                }
-
-                OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
-                if (!target.hasPlayedBefore()) {
-                    sender.sendMessage(Locale.getMessage("player-not-exist"));
-                    return true;
-                }
-
-                String targetUUID = target.getUniqueId().toString();
-                Player player = (Player) sender;
-                String uuid = player.getUniqueId().toString();
-                VillagerOwner owner = new VillagerOwner(uuid);
-                if (!owner.getGroups().contains(args[3])) {
-                    sender.sendMessage(Locale.getMessage("group-not-exist").replaceAll("%group%", args[3]));
-                    return true;
-                }
-
-                if (!owner.getGroupPlayers(args[3]).contains(targetUUID)) {
-                    sender.sendMessage(Locale.getMessage("player-not-in-group").replaceAll("%group%", args[3]));
-                    return true;
-                }
-
-                owner.removePlayerFromGroup(args[3], targetUUID);
-                sender.sendMessage(Locale.getMessage("player-unset-success").replaceAll("%player%", args[1]).replaceAll("%group%", args[3]));
-                return true;
-
-            }
-
-            if (args[0].equalsIgnoreCase("villager") && args[2].equalsIgnoreCase("set")) {
-
-                if (!sender.hasPermission("myvillager.villager.set")) {
-                    sender.sendMessage(Locale.getMessage("no-perm"));
-                    return true;
-                }
-
-                if (!(sender instanceof Player)) {
-                    sender.sendMessage(Locale.getMessage("must-be-player"));
-                    return true;
-                }
-
-                String group = args[3];
-                Player player = (Player) sender;
-                String uuid = player.getUniqueId().toString();
-                VillagerOwner owner = new VillagerOwner(uuid);
-                if (!owner.getGroups().contains(group)) {
-                    sender.sendMessage(Locale.getMessage("group-not-exist").replaceAll("%group%", group));
-                    return true;
-                }
-
-                if (SelectionMode.getPlayerToggle(uuid)) {
-                    sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                    return true;
-                }
-
-                if (args[1].equalsIgnoreCase("single")) {
-
-                    SelectionMode.replacePlayerToggle(uuid, true);
-                    SelectionMode.replacePlayerMode(uuid, "villager-set-single");
-                    MyVillager.getCache().add(uuid, group);
-                    sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                    return true;
-                }
-
-                if (args[1].equalsIgnoreCase("multiple")) {
-
-                    SelectionMode.replacePlayerToggle(uuid, true);
-                    SelectionMode.replacePlayerMode(uuid, "villager-set");
-                    MyVillager.getCache().add(uuid, group);
-                    sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                    return true;
-
-                }
-
-            }
-
-            if (args[0].equalsIgnoreCase("villager") && args[2].equalsIgnoreCase("unset")) {
-
-                if (!sender.hasPermission("myvillager.villager.unset")) {
-                    sender.sendMessage(Locale.getMessage("no-perm"));
-                    return true;
-                }
-
-                if (!(sender instanceof Player)) {
-                    sender.sendMessage(Locale.getMessage("must-be-player"));
-                    return true;
-                }
-
-                String group = args[3];
-                Player player = (Player) sender;
-                String uuid = player.getUniqueId().toString();
-                VillagerOwner owner = new VillagerOwner(uuid);
-                if (!owner.getGroups().contains(group)) {
-                    sender.sendMessage(Locale.getMessage("group-not-exist").replaceAll("%group%", group));
-                    return true;
-                }
-
-                if (SelectionMode.getPlayerToggle(uuid)) {
-                    sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                    return true;
-                }
-
-                if (args[1].equalsIgnoreCase("single")) {
-
-                    SelectionMode.replacePlayerToggle(uuid, true);
-                    SelectionMode.replacePlayerMode(uuid, "villager-unset-single");
-                    MyVillager.getCache().add(uuid, group);
-                    sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                    return true;
-                }
-
-                if (args[1].equalsIgnoreCase("multiple")) {
-
-                    SelectionMode.replacePlayerToggle(uuid, true);
-                    SelectionMode.replacePlayerMode(uuid, "villager-unset");
-                    MyVillager.getCache().add(uuid, group);
-                    sender.sendMessage(Locale.getMessage("selection.selection-mode"));
-                    return true;
-
-                }
-
-            }
-
-
-        }
-
-
-
-
-
-
-
-
-
-        return false;
     }
-
 
 }

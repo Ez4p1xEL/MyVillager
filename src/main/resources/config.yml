@@ -1,4 +1,7 @@
 configuration: 2
+
+# Language of messages display
+# en, English; zh_CN, Simplified Chinese; zh_TW, Traditional Chinese
 language: en
 
 # Purchase cost

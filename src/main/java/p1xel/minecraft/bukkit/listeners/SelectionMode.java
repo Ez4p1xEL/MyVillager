@@ -668,6 +668,7 @@ public class SelectionMode implements Listener {
                 MyVillager.getCache().remove(uuid);
 
                 p.sendMessage(Locale.getMessage("selection.quited"));
+                p.playSound(p.getLocation(), Sound.BLOCK_IRON_DOOR_CLOSE, 1, 1);
 
             }
         }.runTask(MyVillager.getInstance());
@@ -675,5 +676,7 @@ public class SelectionMode implements Listener {
         event.setCancelled(true);
 
     }
+
+
 
 }

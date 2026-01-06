@@ -70,13 +70,14 @@ public class Locale {
         try {
             return ChatColor.translateAlternateColorCodes('&', yaml.getString(path).replaceAll("%prefix%", yaml.getString("plugin-name")).replaceAll("%version%", MyVillager.getInstance().getDescription().getVersion()));
         } catch (NullPointerException event){
+            MyVillager.getInstance().getLogger().warning("Missing message " + path + " in your language file.");
             MyVillager.getInstance().getLogger().warning("Your language file is not updated to the latest. Please delete it and let it to be re-generated.");
             return "Please update the language file.";
         }
     }
 
-    public static String getCmdMessage(String path) {
-        return ChatColor.translateAlternateColorCodes('&', yaml.getString(path).replaceAll("%prefix%", yaml.getString("commands-plugin-name")).replaceAll("%version%", MyVillager.getInstance().getDescription().getVersion()));
+    public static String getRawMessage(String path) {
+        return yaml.getString(path);
     }
 
     public static String translate(String message) {

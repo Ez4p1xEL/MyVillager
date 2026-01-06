@@ -1,27 +1,64 @@
 language: en
 plugin-name: MyVillager
-commands-plugin-name: myvillager
 commands:
-  top: '&8&m                                                   '
-  plugin: '                &b&lMyVillager %version%'
-  space-1: '&f'
-  help: '&7/%prefix% help &aView help.'
-  claim: '&7/%prefix% claim <single/multiple> &aClaim villager.'
-  lock: '&7/%prefix% lock <single/multiple> &aToggle the villager access permission.'
-  info: '&7/%prefix% info [UniqueId] &aCheck the villager information.'
-  list: '&7/%prefix% list &aView claimed villagers list.'
-  group-create: '&7/%prefix% group create <group> &aCreate permission group.'
-  group-delete: '&7/%prefix% group delete <group> &aDelete permission group.'
-  group-info: '&7/%prefix% group info <group> &aView information of the group.'
-  player-set: '&7/%prefix% player <player> set <group> &aAdd player into the group.'
-  player-unset: '&7/%prefix% player <player> unset <group> &aRemove player from the group.'
-  villager-set: '&7/%prefix% villager <single/multiple> set <group> &aAdd villager into the group.'
-  villager-unset: '&7/%prefix% villager <single/multiple> unset <group> &aRemove villager from the group.'
-  admin-lock: '&7/%prefix% admin lock <single/multiple> &aForce toggling the villager access permission.'
-  admin-remove: '&7/%prefix% admin remove <single/multiple> &aForce removing the owner of the claimed villager.'
-  reload: '&7/%prefix% reload &aReload the configuration.'
-  space-8: '&f'
-  bottom: '&8&m                                                   '
+  claim:
+    usage: '/myvillager claim [multiple]'
+    description: 'claiming the villager(s)'
+  lock:
+    usage: '/myvillager lock [multiple]'
+    description: 'toggling the villager(s) access permission'
+  info:
+    usage: '/myvillager info'
+    description: 'information of the villager'
+  list:
+    usage: '/myvillager list'
+    description: 'claimed villager(s) list'
+  group:
+    usage: '/myvillager group'
+    description: 'permission group management commands'
+    children:
+      create:
+        usage: 'create <group>'
+        description: 'creating permission group'
+      delete:
+        usage: 'delete <group>'
+        description: 'deleting permission group'
+      info:
+        usage: 'info <group>'
+        description: 'information of the group'
+      set:
+        usage: 'set <group>'
+        description: 'adding player or villager(s) into the permission group'
+        children:
+          player:
+            usage: 'player <player>'
+            description: 'adding player into the group'
+          villager:
+            usage: 'villager [multiple]'
+            description: 'adding villager(s) into the group'
+      unset:
+        usage: 'unset <group>'
+        description: 'removing player or villager(s) from the permission group'
+        children:
+          player:
+            usage: 'player <player>'
+            description: 'removing player from the group'
+          villager:
+            usage: 'villager [multiple]'
+            description: 'removing villager(s) from the group'
+  admin:
+    usage: '/myvillager admin'
+    description: 'admin commands'
+    children:
+      lock:
+        usage: 'lock [multiple]'
+        description: 'force toggling the access permission of the villager(s)'
+      remove:
+        usage: 'remove [multiple]'
+        description: 'force removing the owner of the claimed villager(s)'
+  reload:
+    usage: '/myvillager reload'
+    description: 'reload the configuration'
 
 no-perm: '&b&l%prefix% &8&l| &cYou do not have permission to do that!'
 must-be-player: '&b&l%prefix% &8&l| &cYou must be a player to do that!'
@@ -29,7 +66,7 @@ claim-success: '&b&l%prefix% &8&l| &aYou have successfully claimed the villager(
 lock-success: '&b&l%prefix% &8&l| &aYou have successfully toggled the villager(s)!'
 unable-access: '&cYou can''t trade with this claimed villager. '
 number-invalid: '&b&l%prefix% &8&l| &cInvalid value.'
-invalid-page: '&b&l%prefix% &8&l| Invalid page number.'
+invalid-page: '&b&l%prefix% &8&l| &cInvalid page number.'
 no-record: '&b&l%prefix% &8&l| &cYou do not have any claimed villagers!'
 group-already-exist: '&b&l%prefix% &8&l| &cGroup &e%group% &cis already existed!'
 group-not-exist: '&b&l%prefix% &8&l| &cGroup &e%group% &cdoes not exist!'
@@ -48,7 +85,8 @@ villager-unset-success: '&b&l%prefix% &8&l| &aVillager(s) have been removed from
 remove-success: '&b&l%prefix% &8&l| &aVillager(s) have been removed claiming successfully!'
 reload-success: '&b&l%prefix% &8&l| &aConfiguration is reloaded successfully!'
 villager-not-found: '&b&l%prefix% &8&l| &cInvalid villager UniqueId.'
-deny-message: '&cYou can''t do this claimed villager.   '
+deny-message: '&cYou can''t do this to a claimed villager.   '
+incorrect-argument: '&b&l%prefix% &8&l| &cIncorrect argument.'
 
 view-info-text: '&e[View info]'
 view-info-hover: '&7Click to view information of the villager'
@@ -66,6 +104,9 @@ info-can-access: '&bYou are able to access to this villager!'
 info-no-perm: '&cYou are unable to access to this villager!'
 info-console: '&cI''m not quite sure if you can access to this villager...'
 info-no-location: 'X'
+command-click: '&aClick to enter the command'
+command-click-info: '&eLeft click the command'
+group: 'group'
 
 list-page: '&aClaimed Villagers List &7- &dPage %page% &7/ %max_page%'
 list-text: '&a%number%. &7- &6%uuid% &7- &b%world% &7(&b%x%&7,&b%y%&7,&b%z%&7) '
@@ -92,6 +133,9 @@ selection:
     success: '&b&l%prefix% &8&l| &aThe villager has been added into the selection! You can keep selecting other villagers or execute setting by entering ok.'
   remove:
     success: '&b&l%prefix% &8&l| &aThe villager has been added into the selection! You can keep selecting other villagers or execute removing by entering ok.'
+  title:
+    title: '&aYou are in selection mode'
+    subtitle: '&bSelect villager(s) or enter ok to quit.'
 
 vault:
   not-enough-money: '&b&l%prefix% &8&l| &cNot enough money. (Still need $%remain%.)'

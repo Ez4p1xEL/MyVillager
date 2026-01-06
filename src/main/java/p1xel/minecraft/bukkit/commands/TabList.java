@@ -22,8 +22,8 @@ public class TabList implements TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
 
         if (args0.isEmpty()) {
-            args0.add("help"); args0.add("claim"); args0.add("lock"); args0.add("info"); args0.add("list"); args0.add("group");
-            args0.add("player"); args0.add("villager"); args0.add("admin"); args0.add("reload");
+            args0.add("claim"); args0.add("lock"); args0.add("info"); args0.add("list"); args0.add("group");
+            args0.add("admin"); args0.add("reload");
         }
 
         List<String> result0 = new ArrayList<>();
@@ -37,7 +37,7 @@ public class TabList implements TabCompleter {
         }
 
         if (args.length == 2) {
-            if (args[0].equalsIgnoreCase("claim") || args[0].equalsIgnoreCase("lock") || args[0].equalsIgnoreCase("villager")) {
+            if (args[0].equalsIgnoreCase("claim") || args[0].equalsIgnoreCase("lock")) {
                 return selection;
             }
 
@@ -51,11 +51,15 @@ public class TabList implements TabCompleter {
                 return new ArrayList<>();
             }
 
-            if (args[0].equalsIgnoreCase("player")) {
+            if (args[0].equalsIgnoreCase("group")) {
                 List<String> result = new ArrayList<>();
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    result.add(player.getName());
-                }
+                result.add("create"); result.add("delete"); result.add("info"); result.add("set"); result.add("unset");
+                return result;
+            }
+
+            if (args[0].equalsIgnoreCase("admin")) {
+                List<String> result = new ArrayList<>();
+                result.add("lock"); result.add("remove");
                 return result;
             }
 
@@ -63,7 +67,8 @@ public class TabList implements TabCompleter {
 
         if (args.length == 3) {
             if (args[0].equalsIgnoreCase("group")) {
-                if (args[1].equalsIgnoreCase("create")) {
+
+                if (args[1].equals("create")) {
                     return new ArrayList<>();
                 }
                 if (sender instanceof Player) {
@@ -75,19 +80,33 @@ public class TabList implements TabCompleter {
                 return new ArrayList<>();
             }
             if (args[0].equalsIgnoreCase("admin")) {
-                return selection;
+                if (args[1].equalsIgnoreCase("lock") || args[1].equalsIgnoreCase("remove")) {
+                    return selection;
+                }
             }
         }
 
         if (args.length == 4) {
-            if (args[0].equalsIgnoreCase("player") || args[0].equalsIgnoreCase("villager")) {
-                if (sender instanceof Player) {
-                    Player player = (Player) sender;
-                    String uuid = player.getUniqueId().toString();
-                    VillagerOwner owner = new VillagerOwner(uuid);
-                    return owner.getGroups();
+            if (args[0].equalsIgnoreCase("group") && (args[1].equalsIgnoreCase("set") || args[1].equalsIgnoreCase("unset"))) {
+                List<String> result = new ArrayList<>();
+                result.add("player"); result.add("villager");
+                return result;
+            }
+        }
+
+        if (args.length == 5) {
+            if (args[0].equalsIgnoreCase("group") && (args[1].equalsIgnoreCase("set") || args[1].equalsIgnoreCase("unset"))) {
+                if (args[3].equalsIgnoreCase("villager")) {
+                    return selection;
                 }
-                return new ArrayList<>();
+
+                if (args[3].equalsIgnoreCase("player")) {
+                    List<String> result = new ArrayList<>();
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        result.add(player.getName());
+                    }
+                    return result;
+                }
             }
         }
 
